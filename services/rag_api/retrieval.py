@@ -105,12 +105,13 @@ class HybridRetriever:
         try:
             collection = self.qdrant_client.get_collection(collection_name)
             
+            from models import DistanceMetric
             return CollectionInfo(
                 name=collection_name,
                 vectors_count=collection.points_count,
                 indexed_documents=collection.points_count,  # Approximate
                 vector_size=collection.config.params.vectors.size,
-                distance_metric=collection.config.params.vectors.distance.value,
+                distance_metric=DistanceMetric.from_qdrant(collection.config.params.vectors.distance.value),
                 index_type="HNSW",
                 index_params={
                     "m": collection.config.params.vectors.hnsw_config.m if collection.config.params.vectors.hnsw_config else 16,

@@ -17,6 +17,17 @@ class DistanceMetric(str, Enum):
     DOT = "dot"
     EUCLIDEAN = "euclidean"
     MANHATTAN = "manhattan"
+    
+    @classmethod
+    def from_qdrant(cls, value: str):
+        """Convert Qdrant distance metric to our enum."""
+        mapping = {
+            "Cosine": cls.COSINE,
+            "Dot": cls.DOT,
+            "Euclidean": cls.EUCLIDEAN,
+            "Manhattan": cls.MANHATTAN
+        }
+        return mapping.get(value, cls.COSINE)
 
 
 class RetrievalMethod(str, Enum):
