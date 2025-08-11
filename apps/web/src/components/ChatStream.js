@@ -397,13 +397,19 @@ export function useStreamingChat() {
               const newMessages = [...prev]
               const lastMessage = newMessages[newMessages.length - 1]
               if (lastMessage && lastMessage.type === 'assistant') {
+                // Process metrics and extract total_tokens from tokens_used
+                const metrics = data.metadata || lastMessage.metrics || {}
+                if (metrics.tokens_used && typeof metrics.tokens_used === 'object') {
+                  metrics.total_tokens = metrics.tokens_used.total_tokens || metrics.tokens_used.total || 0
+                }
+                
                 newMessages[newMessages.length - 1] = {
                   ...lastMessage,
                   content: data.content || lastMessage.content,
                   citations: data.citations || lastMessage.citations,
                   sources: data.citations || lastMessage.sources,
                   sentence_attribution: data.sentence_attribution,
-                  metrics: data.metadata || lastMessage.metrics,
+                  metrics: metrics,
                   refinementCount: data.metadata?.refinement_count || 0
                 }
               }
@@ -415,9 +421,15 @@ export function useStreamingChat() {
               const newMessages = [...prev]
               const lastMessage = newMessages[newMessages.length - 1]
               if (lastMessage && lastMessage.type === 'assistant') {
+                // Process metrics and extract total_tokens from tokens_used
+                const metrics = data.metrics || {}
+                if (metrics.tokens_used && typeof metrics.tokens_used === 'object') {
+                  metrics.total_tokens = metrics.tokens_used.total_tokens || metrics.tokens_used.total || 0
+                }
+                
                 newMessages[newMessages.length - 1] = {
                   ...lastMessage,
-                  metrics: data.metrics
+                  metrics: metrics
                 }
               }
               return newMessages

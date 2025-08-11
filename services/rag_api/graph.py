@@ -99,6 +99,10 @@ class AgentState(TypedDict):
     
     # Sentence-level citations (Phase 6)
     sentence_attribution: Optional[Dict[str, Any]]
+    
+    # Token usage tracking
+    tokens_used: Optional[Dict[str, Any]]
+    total_tokens: Optional[int]
 
 
 class AgenticRAG:
@@ -394,6 +398,8 @@ class AgenticRAG:
             response = await self.llm.achat_completion(synthesis_messages)
             answer = response.content
             
+
+            
             # Generate sentence-level attributions if enabled
             sentence_attribution = None
             if state.get("enable_sentence_citations", False) and self.citation_engine:
@@ -465,7 +471,9 @@ class AgenticRAG:
                 "sentence_attribution": sentence_attribution,
                 "current_step": AgentStep.VERIFIER if state.get("enable_verification", True) else AgentStep.DONE,
                 "step_times": {**state.get("step_times", {}), "synthesizer": step_time},
-                "trace_events": new_trace_events
+                "trace_events": new_trace_events,
+                "tokens_used": response.usage,
+                "total_tokens": response.usage.get("total_tokens", 0)
             }
             
         except Exception as e:

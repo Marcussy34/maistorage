@@ -504,7 +504,9 @@ async def chat_stream(
                             "total_time_ms": final_state.get("total_time_ms", 0),
                             "refinement_count": final_state.get("refinement_count", 0),
                             "step_times": final_state.get("step_times", {}),
-                            "verification_passed": not final_state.get("needs_refinement", False)
+                            "verification_passed": not final_state.get("needs_refinement", False),
+                            "tokens_used": final_state.get("tokens_used", {}),
+                            "total_tokens": final_state.get("tokens_used", {}).get("total_tokens", 0)
                         }
                     }
                     yield f"data: {json.dumps(answer_data)}\n\n"
