@@ -15,7 +15,7 @@ export default function Home() {
       
       <div className="min-h-screen bg-background text-foreground">
         {/* Hero Section */}
-        <main className="container mx-auto px-4 py-12">
+        <main className="container mx-auto px-4 py-24 md:py-48">
           <div className="text-center mb-12">
             <div className="flex justify-center mb-6">
               <div className="p-3 bg-primary/10 rounded-full">
@@ -41,11 +41,11 @@ export default function Home() {
                   Try Chat Interface
                 </Button>
               </Link>
-              <Button variant="outline" size="lg" asChild>
-                <a href="http://localhost:8000" target="_blank" rel="noopener noreferrer">
+              <Link href="/api-docs">
+                <Button variant="outline" size="lg">
                   API Documentation
-                </a>
-              </Button>
+                </Button>
+              </Link>
             </div>
           </div>
 
