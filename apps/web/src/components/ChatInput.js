@@ -7,7 +7,7 @@ import { Send } from 'lucide-react'
  * ChatInput component for sending messages
  * Handles user input and message submission with loading states
  */
-export function ChatInput({ onSendMessage, isLoading, disabled = false }) {
+export function ChatInput({ onSendMessage, isLoading, disabled = false, placeholder = "Ask a question about your documents..." }) {
   const [message, setMessage] = useState('')
   const [lastSentMessage, setLastSentMessage] = useState('')
   const [lastSentTime, setLastSentTime] = useState(0)
@@ -39,7 +39,7 @@ export function ChatInput({ onSendMessage, isLoading, disabled = false }) {
       <div className="flex-1">
         <Input
           type="text"
-          placeholder="Ask a question about your documents..."
+          placeholder={placeholder}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}

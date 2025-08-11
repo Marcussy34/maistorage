@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { message } = req.body
+  const { message, agentic = false, top_k = 10 } = req.body
 
   // Validate request body
   if (!message || typeof message !== 'string' || !message.trim()) {
@@ -29,14 +29,20 @@ export default async function handler(req, res) {
   })
 
   try {
-    // Forward request to FastAPI backend
-    const backendResponse = await fetch(`${API_BASE_URL}/rag`, {
+    // Forward request to FastAPI backend - use new streaming endpoint
+    const endpoint = `${API_BASE_URL}/chat/stream${agentic ? '?agentic=true' : '?agentic=false'}`
+    const backendResponse = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        query: message.trim()
+        query: message.trim(),
+        top_k: top_k,
+        enable_verification: true,
+        max_refinements: 2,
+        stream_traces: true,
+        stream_tokens: false
       })
     })
 
@@ -53,61 +59,38 @@ export default async function handler(req, res) {
       return res.end()
     }
 
-    // Parse the response from FastAPI (non-streaming baseline RAG)
-    const data = await backendResponse.json()
-    // Debug log (remove in production)
-    // console.log('Backend response:', JSON.stringify(data, null, 2))
+    // Stream the response directly from FastAPI
+    if (!backendResponse.body) {
+      throw new Error('No response body from backend')
+    }
 
-    // Convert the response to streaming format
-    // Stream the tokens one by one to simulate streaming
-    if (data.answer) {
-      const words = data.answer.split(' ')
-      
-      for (let i = 0; i < words.length; i++) {
-        const tokenData = {
-          type: 'token',
-          content: (i === 0 ? '' : ' ') + words[i]
-        }
-        res.write(JSON.stringify(tokenData) + '\n')
+    const reader = backendResponse.body.getReader()
+    const decoder = new TextDecoder()
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
         
-        // Add small delay to simulate realistic streaming
-        await new Promise(resolve => setTimeout(resolve, 50))
-      }
-    }
+        if (done) break
 
-    // Send citations if available
-    if (data.citations && data.citations.length > 0) {
-      const citationsData = {
-        type: 'sources',
-        citations: data.citations.map(citation => ({
-          title: citation.doc_name || 'Unknown Document',
-          content: citation.text_snippet?.substring(0, 200) || 'No content preview available',
-          score: citation.score,
-          chunk_index: citation.chunk_index,
-          document_id: citation.document_id
-        }))
-      }
-      res.write(JSON.stringify(citationsData) + '\n')
-    }
-
-    // Send metrics if available
-    if (data.retrieval_time_ms || data.generation_time_ms || data.total_time_ms) {
-      const metricsData = {
-        type: 'metrics',
-        metrics: {
-          retrieval_time_ms: data.retrieval_time_ms,
-          llm_time_ms: data.generation_time_ms,
-          total_tokens: data.tokens_used?.total_tokens,
-          total_time_ms: data.total_time_ms,
-          chunks_retrieved: data.chunks_retrieved,
-          model_used: data.model_used
+        // Decode and process the chunk
+        const chunk = decoder.decode(value, { stream: true })
+        
+        // Handle Server-Sent Events format from FastAPI
+        const lines = chunk.split('\n')
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const jsonData = line.substring(6) // Remove "data: " prefix
+            if (jsonData.trim()) {
+              res.write(jsonData + '\n') // Convert to NDJSON format
+            }
+          }
         }
       }
-      res.write(JSON.stringify(metricsData) + '\n')
+    } finally {
+      reader.releaseLock()
     }
 
-    // Send completion signal
-    res.write(JSON.stringify({ type: 'done' }) + '\n')
     res.end()
 
   } catch (error) {

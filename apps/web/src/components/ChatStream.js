@@ -1,6 +1,10 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { Button } from './ui/button'
-import { RefreshCw, Copy, AlertCircle } from 'lucide-react'
+import { RefreshCw, Copy, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react'
+import { SourceBadges, TextWithCitations } from './SourceBadge'
+import { AgentTrace, CompactAgentTrace } from './AgentTrace'
+import { ContextPanel, CompactContextPanel } from './ContextPanel'
+import { MetricsChips, CompactMetrics } from './MetricsChips'
 
 /**
  * Parses NDJSON stream data line by line
@@ -19,9 +23,35 @@ function parseNDJSONLine(line) {
  * ChatStream component for displaying streaming chat responses
  * Handles NDJSON parsing and real-time token display
  */
-export function ChatStream({ messages, onRetry, isLoading }) {
+export function ChatStream({ messages, onRetry, isLoading, ragMode = false }) {
   const messagesEndRef = useRef(null)
   const [copiedIndex, setCopiedIndex] = useState(null)
+  const [expandedSources, setExpandedSources] = useState(new Set())
+  const [expandedTrace, setExpandedTrace] = useState(new Set())
+  
+  const toggleSourcesExpanded = (messageId) => {
+    setExpandedSources(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(messageId)) {
+        newSet.delete(messageId)
+      } else {
+        newSet.add(messageId)
+      }
+      return newSet
+    })
+  }
+  
+  const toggleTraceExpanded = (messageId) => {
+    setExpandedTrace(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(messageId)) {
+        newSet.delete(messageId)
+      } else {
+        newSet.add(messageId)
+      }
+      return newSet
+    })
+  }
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -62,8 +92,18 @@ export function ChatStream({ messages, onRetry, isLoading }) {
           {/* Assistant Message */}
           {msg.type === 'assistant' && (
             <div className="flex justify-start">
-              <div className="bg-muted px-4 py-2 rounded-lg max-w-[80%] relative group">
-                <div className="whitespace-pre-wrap">{msg.content}</div>
+              <div className="bg-muted px-4 py-2 rounded-lg max-w-[80%] relative group space-y-3">
+                {/* Main content with citations */}
+                <div>
+                  <TextWithCitations
+                    text={msg.content}
+                    citations={msg.citations}
+                    sentenceAttributions={msg.sentence_attribution}
+                    onSourceClick={(citation) => {
+                      console.log('Source clicked:', citation)
+                    }}
+                  />
+                </div>
                 
                 {/* Copy button */}
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -84,43 +124,86 @@ export function ChatStream({ messages, onRetry, isLoading }) {
                   </div>
                 )}
 
-                {/* Citations if available */}
-                {msg.citations && msg.citations.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-border/50">
-                    <div className="text-xs text-muted-foreground mb-2">Sources:</div>
-                    <div className="space-y-1">
-                      {msg.citations.map((citation, citIndex) => (
-                        <div key={citIndex} className="text-xs bg-background/50 rounded px-2 py-1">
-                          <div className="font-medium">{citation.title || `Source ${citIndex + 1}`}</div>
-                          {citation.chunk_index !== undefined && (
-                            <div className="text-muted-foreground text-xs">Chunk {citation.chunk_index}</div>
-                          )}
-                          {citation.content && (
-                            <div className="text-muted-foreground mt-1">
-                              &quot;{citation.content.substring(0, 150)}...&quot;
-                            </div>
-                          )}
-                          {citation.score && (
-                            <div className="text-muted-foreground">Relevance: {citation.score.toFixed(3)}</div>
-                          )}
-                        </div>
-                      ))}
+                {/* Agent Trace for agentic responses */}
+                {msg.traceEvents && msg.traceEvents.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-muted-foreground">Agent Trace</span>
+                        <CompactAgentTrace
+                          traceEvents={msg.traceEvents}
+                          totalTime={msg.metrics?.total_time_ms}
+                        />
+                      </div>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleTraceExpanded(msg.id)}
+                        className="h-6 text-xs"
+                      >
+                        {expandedTrace.has(msg.id) ? (
+                          <ChevronUp className="h-3 w-3" />
+                        ) : (
+                          <ChevronDown className="h-3 w-3" />
+                        )}
+                      </Button>
                     </div>
+                    
+                    {expandedTrace.has(msg.id) && (
+                      <AgentTrace
+                        traceEvents={msg.traceEvents}
+                        totalTime={msg.metrics?.total_time_ms}
+                        refinementCount={msg.refinementCount}
+                        className="mt-2"
+                      />
+                    )}
                   </div>
                 )}
 
-                {/* Metrics if available */}
-                {msg.metrics && (
-                  <div className="mt-2 text-xs text-muted-foreground">
-                    {msg.metrics.retrieval_time_ms && 
-                      `Retrieval: ${Math.round(msg.metrics.retrieval_time_ms)}ms`}
-                    {msg.metrics.llm_time_ms && 
-                      ` • LLM: ${Math.round(msg.metrics.llm_time_ms)}ms`}
-                    {msg.metrics.total_tokens && 
-                      ` • Tokens: ${msg.metrics.total_tokens}`}
-                    {msg.metrics.chunks_retrieved && 
-                      ` • Chunks: ${msg.metrics.chunks_retrieved}`}
+                {/* Context Panel for sources */}
+                {msg.sources && msg.sources.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-muted-foreground">Sources</span>
+                        <CompactContextPanel sources={msg.sources} />
+                      </div>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleSourcesExpanded(msg.id)}
+                        className="h-6 text-xs"
+                      >
+                        {expandedSources.has(msg.id) ? (
+                          <ChevronUp className="h-3 w-3" />
+                        ) : (
+                          <ChevronDown className="h-3 w-3" />
+                        )}
+                      </Button>
+                    </div>
+                    
+                    {expandedSources.has(msg.id) && (
+                      <ContextPanel
+                        sources={msg.sources}
+                        query={msg.originalQuery}
+                        retrievalTime={msg.metrics?.retrieval_time_ms}
+                        chunksRetrieved={msg.metrics?.chunks_retrieved}
+                        className="mt-2"
+                      />
+                    )}
                   </div>
+                )}
+
+                {/* Metrics display */}
+                {msg.metrics && (
+                  <MetricsChips 
+                    metrics={msg.metrics}
+                    layout="inline"
+                    showLabels={false}
+                    className="text-xs"
+                  />
                 )}
               </div>
             </div>
@@ -183,10 +266,10 @@ export function useStreamingChat() {
   const abortControllerRef = useRef(null)
   const requestInProgressRef = useRef(false)
 
-  const sendMessage = useCallback(async (query) => {
+  const sendMessage = useCallback(async (query, ragMode = false) => {
     if (isLoading || requestInProgressRef.current) return
     
-    console.log('Sending message:', query)
+    console.log('Sending message:', query, 'RAG Mode:', ragMode)
     requestInProgressRef.current = true
     
     // Prevent duplicate requests by aborting any existing request
@@ -212,7 +295,11 @@ export function useStreamingChat() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: query }),
+        body: JSON.stringify({ 
+          message: query,
+          agentic: ragMode,
+          top_k: 10
+        }),
         signal: abortControllerRef.current.signal
       })
 
@@ -230,7 +317,12 @@ export function useStreamingChat() {
         type: 'assistant',
         content: '',
         citations: null,
+        sources: null,
         metrics: null,
+        traceEvents: [],
+        sentence_attribution: null,
+        refinementCount: 0,
+        originalQuery: query,
         id: Date.now() + 2
       }
 
@@ -258,30 +350,61 @@ export function useStreamingChat() {
 
           // Handle different types of streaming events
           console.log('Received streaming data:', data)
+          
           if (data.type === 'token') {
             // Append token to current assistant message
             setMessages(prev => {
               const newMessages = [...prev]
               const lastMessage = newMessages[newMessages.length - 1]
               if (lastMessage && lastMessage.type === 'assistant') {
-                // Create a new message object to prevent mutation
                 newMessages[newMessages.length - 1] = {
                   ...lastMessage,
-                  content: lastMessage.content + data.content
+                  content: lastMessage.content + (data.content || '')
+                }
+              }
+              return newMessages
+            })
+          } else if (data.type === 'step_start' || data.type === 'step_complete' || data.type === 'verification') {
+            // Add trace events for agentic workflow
+            setMessages(prev => {
+              const newMessages = [...prev]
+              const lastMessage = newMessages[newMessages.length - 1]
+              if (lastMessage && lastMessage.type === 'assistant') {
+                newMessages[newMessages.length - 1] = {
+                  ...lastMessage,
+                  traceEvents: [...lastMessage.traceEvents, data]
                 }
               }
               return newMessages
             })
           } else if (data.type === 'sources') {
-            // Add citations to current assistant message
+            // Add sources/citations to current assistant message
             setMessages(prev => {
               const newMessages = [...prev]
               const lastMessage = newMessages[newMessages.length - 1]
               if (lastMessage && lastMessage.type === 'assistant') {
-                // Create a new message object to prevent mutation
                 newMessages[newMessages.length - 1] = {
                   ...lastMessage,
-                  citations: data.citations
+                  citations: data.citations,
+                  sources: data.data?.sources || data.citations
+                }
+              }
+              return newMessages
+            })
+          } else if (data.type === 'answer') {
+            // Handle complete answer with all metadata
+            setMessages(prev => {
+              const newMessages = [...prev]
+              const lastMessage = newMessages[newMessages.length - 1]
+              if (lastMessage && lastMessage.type === 'assistant') {
+                newMessages[newMessages.length - 1] = {
+                  ...lastMessage,
+                  content: data.content || lastMessage.content,
+                  citations: data.citations || lastMessage.citations,
+                  sources: data.citations || lastMessage.sources,
+                  sentence_attribution: data.sentence_attribution,
+                  metrics: data.metadata || lastMessage.metrics,
+                  refinementCount: data.metadata?.refinement_count || 0
                 }
               }
               return newMessages
@@ -292,7 +415,6 @@ export function useStreamingChat() {
               const newMessages = [...prev]
               const lastMessage = newMessages[newMessages.length - 1]
               if (lastMessage && lastMessage.type === 'assistant') {
-                // Create a new message object to prevent mutation
                 newMessages[newMessages.length - 1] = {
                   ...lastMessage,
                   metrics: data.metrics
@@ -329,8 +451,8 @@ export function useStreamingChat() {
     }
   }, [isLoading])
 
-  const retryMessage = useCallback((query) => {
-    sendMessage(query)
+  const retryMessage = useCallback((query, ragMode = false) => {
+    sendMessage(query, ragMode)
   }, [sendMessage])
 
   const stopGeneration = useCallback(() => {
