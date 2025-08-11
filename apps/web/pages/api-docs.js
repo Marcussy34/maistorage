@@ -472,7 +472,7 @@ curl -X POST http://localhost:8000/api/search \\
                   <Button variant="outline" size="lg" asChild>
                     <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer">
                       <Server className="h-5 w-5 mr-2" />
-                      OpenAPI Docs
+                      Interactive API Docs
                     </a>
                   </Button>
                 </div>
