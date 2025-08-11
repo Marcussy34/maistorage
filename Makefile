@@ -9,9 +9,9 @@ help: ## Show this help message
 # Installation and setup
 install-deps: ## Install all dependencies
 	@echo "Installing Python dependencies for RAG API..."
-	cd services/rag_api && python3 -m pip install -r requirements.txt
+	cd services/rag_api && source venv/bin/activate && pip install -r requirements.txt
 	@echo "Installing Python dependencies for Indexer..."
-	cd services/indexer && python3 -m pip install -r requirements.txt
+	cd services/indexer && source venv/bin/activate && pip install -r requirements.txt
 	@echo "Installing Node.js dependencies for Web..."
 	cd apps/web && npm install
 
@@ -38,7 +38,7 @@ restart-infra: stop-infra start-infra ## Restart infrastructure services
 
 # Services
 start-api: ## Start the RAG API server
-	cd services/rag_api && uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+	cd services/rag_api && source venv/bin/activate && uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 start-web: ## Start the Next.js web application
 	cd apps/web && npm run dev
