@@ -1,5 +1,7 @@
+import React, { useEffect, useState, useRef } from 'react';
 import Head from "next/head";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { Button } from "../src/components/ui/button";
 import { Badge } from "../src/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../src/components/ui/tabs";
@@ -13,10 +15,48 @@ import {
   FileText,
   Code,
   Play,
-  CheckCircle
+  CheckCircle,
+  Moon,
+  Sun
 } from "lucide-react";
 
 export default function ApiDocs() {
+  const [darkMode, setDarkMode] = useState(false)
+  const mountedRef = useRef(false)
+
+  // Initialize dark mode from localStorage or system preference
+  useEffect(() => {
+    if (mountedRef.current) return // Prevent double execution in StrictMode
+    mountedRef.current = true
+    
+    const savedDarkMode = localStorage.getItem('darkMode')
+    const systemDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    
+    const shouldUseDarkMode = savedDarkMode 
+      ? JSON.parse(savedDarkMode) 
+      : systemDarkMode
+
+    setDarkMode(shouldUseDarkMode)
+    updateDarkModeClass(shouldUseDarkMode)
+  }, [])
+
+  // Update dark mode class on document
+  const updateDarkModeClass = (isDark) => {
+    if (isDark) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }
+
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode
+    setDarkMode(newDarkMode)
+    localStorage.setItem('darkMode', JSON.stringify(newDarkMode))
+    updateDarkModeClass(newDarkMode)
+  }
+
   return (
     <>
       <Head>
@@ -28,56 +68,128 @@ export default function ApiDocs() {
       
       <div className="min-h-screen bg-background text-foreground">
         {/* Header */}
-        <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <motion.header 
+          className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+              <motion.div 
+                className="flex items-center gap-3"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
                 <Database className="h-6 w-6 text-primary" />
                 <div>
                   <h1 className="text-lg font-semibold">MaiStorage API</h1>
                   <p className="text-sm text-muted-foreground">Agentic RAG System Documentation</p>
                 </div>
-              </div>
+              </motion.div>
               
-              <Link href="/">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to Home
-                </Button>
-              </Link>
+              <motion.div 
+                className="flex items-center gap-2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                {/* Dark mode toggle */}
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={toggleDarkMode}
+                  >
+                    {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  </Button>
+                </motion.div>
+                
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Link href="/">
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <ArrowLeft className="h-4 w-4" />
+                      Back to Home
+                    </Button>
+                  </Link>
+                </motion.div>
+              </motion.div>
             </div>
           </div>
-        </header>
+        </motion.header>
 
         {/* Main Content */}
-        <main className="container mx-auto px-4 py-8">
+        <motion.main 
+          className="container mx-auto px-4 py-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
           {/* Overview Section */}
           <div className="text-center mb-12">
-            <div className="flex justify-center mb-6">
+            <motion.div 
+              className="flex justify-center mb-6"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
               <div className="p-3 bg-primary/10 rounded-full">
                 <Server className="h-12 w-12 text-primary" />
               </div>
-            </div>
+            </motion.div>
             
-            <h1 className="text-4xl font-bold tracking-tight mb-4">
+            <motion.h1 
+              className="text-4xl font-bold tracking-tight mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
               API Documentation
-            </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            </motion.h1>
+            <motion.p 
+              className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+            >
               Complete reference for the MaiStorage Agentic RAG API
-            </p>
-            <div className="flex gap-4 justify-center mb-12">
+            </motion.p>
+            <motion.div 
+              className="flex gap-4 justify-center mb-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+            >
               <Badge variant="success" className="gap-1">
                 <CheckCircle className="h-3 w-3" />
                 API v1.0
               </Badge>
               <Badge variant="info">FastAPI</Badge>
               <Badge variant="outline">OpenAPI 3.0</Badge>
-            </div>
+            </motion.div>
           </div>
 
           {/* Quick Links */}
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            <div className="text-center p-6 rounded-lg border bg-card">
+          <motion.div 
+            className="grid md:grid-cols-3 gap-6 mb-12"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.7 }}
+          >
+            <motion.div 
+              className="text-center p-6 rounded-lg border bg-card"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              whileHover={{ y: -5, transition: { duration: 0.2 } }}
+            >
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <Play className="h-6 w-6 text-primary" />
               </div>
@@ -85,9 +197,15 @@ export default function ApiDocs() {
               <p className="text-muted-foreground">
                 Get started with basic API usage and authentication
               </p>
-            </div>
+            </motion.div>
 
-            <div className="text-center p-6 rounded-lg border bg-card">
+            <motion.div 
+              className="text-center p-6 rounded-lg border bg-card"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.9 }}
+              whileHover={{ y: -5, transition: { duration: 0.2 } }}
+            >
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <MessageSquare className="h-6 w-6 text-primary" />
               </div>
@@ -95,9 +213,15 @@ export default function ApiDocs() {
               <p className="text-muted-foreground">
                 Streaming chat and Q&A functionality
               </p>
-            </div>
+            </motion.div>
 
-            <div className="text-center p-6 rounded-lg border bg-card">
+            <motion.div 
+              className="text-center p-6 rounded-lg border bg-card"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 1.0 }}
+              whileHover={{ y: -5, transition: { duration: 0.2 } }}
+            >
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
                 <Search className="h-6 w-6 text-primary" />
               </div>
@@ -105,11 +229,16 @@ export default function ApiDocs() {
               <p className="text-muted-foreground">
                 Hybrid retrieval and document search
               </p>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* API Documentation Tabs */}
-          <Tabs defaultValue="endpoints" className="w-full">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.1 }}
+          >
+            <Tabs defaultValue="endpoints" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="endpoints">Endpoints</TabsTrigger>
               <TabsTrigger value="authentication">Auth</TabsTrigger>
@@ -448,9 +577,15 @@ curl -X POST http://localhost:8000/api/search \\
               </div>
             </TabsContent>
           </Tabs>
+          </motion.div>
 
           {/* Interactive Demo Section */}
-          <div className="mt-12 rounded-lg border bg-card p-6">
+          <motion.div 
+            className="mt-12 rounded-lg border bg-card p-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.2 }}
+          >
             <div className="text-center mb-6">
               <h3 className="text-lg font-semibold mb-2">Try the API</h3>
               <p className="text-muted-foreground">
@@ -463,30 +598,45 @@ curl -X POST http://localhost:8000/api/search \\
                   Use our interactive chat interface to test the streaming API in real-time.
                 </p>
                 <div className="flex gap-4 justify-center">
-                  <Link href="/chat">
-                    <Button size="lg" className="gap-2">
-                      <MessageSquare className="h-5 w-5" />
-                      Try Chat Interface
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Link href="/chat">
+                      <Button size="lg" className="gap-2">
+                        <MessageSquare className="h-5 w-5" />
+                        Try Chat Interface
+                      </Button>
+                    </Link>
+                  </motion.div>
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button variant="outline" size="lg" asChild>
+                      <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer">
+                        <Server className="h-5 w-5 mr-2" />
+                        Interactive API Docs
+                      </a>
                     </Button>
-                  </Link>
-                  <Button variant="outline" size="lg" asChild>
-                    <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer">
-                      <Server className="h-5 w-5 mr-2" />
-                      Interactive API Docs
-                    </a>
-                  </Button>
+                  </motion.div>
                 </div>
               </div>
             </div>
-          </div>
-        </main>
+          </motion.div>
+        </motion.main>
 
         {/* Footer */}
-        <footer className="border-t py-6 mt-12 text-center text-sm text-muted-foreground">
+        <motion.footer 
+          className="border-t py-6 mt-12 text-center text-sm text-muted-foreground"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 1.3 }}
+        >
           <p>
             MaiStorage API Documentation - Built with FastAPI and OpenAPI 3.0
           </p>
-        </footer>
+        </motion.footer>
       </div>
     </>
   );
