@@ -14,8 +14,23 @@ export default function Home() {
       </Head>
       
       <div className="min-h-screen bg-background text-foreground">
+        {/* Header */}
+        <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Database className="h-6 w-6 text-primary" />
+                <div>
+                  <h1 className="text-lg font-semibold">MaiStorage</h1>
+                  <p className="text-sm text-muted-foreground">Agentic RAG System - Built with Next.js, FastAPI, and shadcn/ui</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
         {/* Hero Section */}
-        <main className="container mx-auto px-4 py-24 md:py-48">
+        <main className="container mx-auto px-4 py-24 md:py-24">
           <div className="text-center mb-12">
             <div className="flex justify-center mb-6">
               <div className="p-3 bg-primary/10 rounded-full">
@@ -81,51 +96,7 @@ export default function Home() {
               </p>
             </div>
           </div>
-
-          {/* Status Section */}
-          <div className="bg-muted rounded-lg p-6 mb-8">
-            <h2 className="text-lg font-semibold mb-4">System Status</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm">Phase 4 Complete</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm">Streaming UI</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm">API Proxy</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm">Dark Mode</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Next Steps */}
-          <div className="text-center">
-            <h2 className="text-2xl font-semibold mb-4">What's Next?</h2>
-            <p className="text-muted-foreground mb-6">
-              Upcoming phases will add agentic loops with LangGraph, 
-              sentence-level citations, and comprehensive evaluation metrics.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Current implementation provides baseline RAG with chunk-level citations.
-              <br />
-              Phase 5 will introduce multi-step agentic reasoning with planner and verifier.
-            </p>
-          </div>
         </main>
-
-        {/* Footer */}
-        <footer className="border-t py-6 text-center text-sm text-muted-foreground">
-          <p>
-            MAI Storage Agentic RAG System - Built with Next.js, FastAPI, and shadcn/ui
-          </p>
-        </footer>
       </div>
     </>
   );

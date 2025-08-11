@@ -484,7 +484,7 @@ curl -X POST http://localhost:8000/api/search \\
         {/* Footer */}
         <footer className="border-t py-6 mt-12 text-center text-sm text-muted-foreground">
           <p>
-            MAI Storage API Documentation - Built with FastAPI and OpenAPI 3.0
+            MaiStorage API Documentation - Built with FastAPI and OpenAPI 3.0
           </p>
         </footer>
       </div>

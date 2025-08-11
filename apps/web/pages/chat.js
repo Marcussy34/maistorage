@@ -100,21 +100,23 @@ export default function ChatPage() {
   return (
     <>
       <Head>
-        <title>MAI Storage - RAG Chat</title>
-        <meta name="description" content="Intelligent document search and Q&A with MAI Storage RAG system" />
+        <title>MaiStorage - RAG Chat</title>
+        <meta name="description" content="Intelligent document search and Q&A with MaiStorage RAG system" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <div className="flex flex-col h-screen bg-background text-foreground">
         {/* Header */}
-        <header className="flex items-center justify-between p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="flex items-center gap-3">
+        <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
             <MessageSquare className="h-6 w-6 text-primary" />
             <div>
-              <h1 className="text-lg font-semibold">MAI Storage</h1>
+              <h1 className="text-lg font-semibold">MaiStorage</h1>
               <div className="flex items-center gap-2">
-                <p className="text-sm text-muted-foreground">Phase 7 - Interactive Citations</p>
+                <p className="text-sm text-muted-foreground">Agentic RAG Chat Interface</p>
                 <ModeStatus 
                   isAgentic={agenticMode}
                   lastResponseTime={lastResponseTime}
@@ -184,6 +186,8 @@ export default function ChatPage() {
                 Stop
               </Button>
             )}
+              </div>
+            </div>
           </div>
         </header>
 
@@ -209,7 +213,7 @@ export default function ChatPage() {
         {/* Footer */}
         <footer className="px-4 py-2 text-center text-xs text-muted-foreground border-t">
           <p>
-            MAI Storage Phase 7 - Interactive Citations & Agent Trace
+            MaiStorage Phase 7 - Interactive Citations & Agent Trace
             {' • '}
             <span className="font-medium">
               {messages.filter(m => m.type === 'user').length} messages sent
