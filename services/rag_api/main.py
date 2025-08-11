@@ -66,7 +66,7 @@ class Settings(BaseSettings):
     app_name: str = "MAI Storage RAG API"
     environment: str = Field(default="development", description="Deployment environment")
     debug: bool = Field(default=True, description="Enable debug mode")
-    log_level: str = Field(default="INFO", regex="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
+    log_level: str = Field(default="INFO", pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
     
     # API Keys and authentication
     openai_api_key: str = Field(..., description="OpenAI API key (required)")
@@ -371,15 +371,15 @@ async def health_check(retriever_instance: HybridRetriever = Depends(get_retriev
         memory_usage_mb = None
         cpu_percent = None
     
-    # Get retrieval stats
-    stats = retriever_instance.get_stats()
+    # Get retrieval stats (synchronous access to avoid async issues)
+    stats = retriever_instance.stats.copy()
     
     # Determine overall status
     status = "healthy" if all([qdrant_healthy, embeddings_healthy, reranker_healthy]) else "unhealthy"
     
     return HealthCheck(
         status=status,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.utcnow().isoformat(),
         version="0.3.0",  # Updated version
         qdrant_healthy=qdrant_healthy,
         embeddings_healthy=embeddings_healthy,

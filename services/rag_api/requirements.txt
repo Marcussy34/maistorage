@@ -38,7 +38,7 @@ aiofiles>=24.0.0
 # Phase 10 Dependencies - Logging & Tracing
 structlog>=23.1.0
 langfuse>=2.0.0
-phoenix-evals>=0.8.0
+# phoenix-evals>=0.8.0  # Optional dependency
 opentelemetry-api>=1.20.0
 opentelemetry-sdk>=1.20.0
 opentelemetry-instrumentation-fastapi>=0.41b0

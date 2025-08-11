@@ -187,7 +187,7 @@ class HealthCheck(BaseModel):
     """Health check response model."""
     
     status: str = Field(..., description="Service health status")
-    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Check timestamp")
+    timestamp: str = Field(..., description="Check timestamp (ISO format)")
     version: str = Field(..., description="API version")
     
     # Component health
