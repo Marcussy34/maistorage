@@ -3,7 +3,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../src/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../src/components/ui/card";
+
 import { Badge } from "../src/components/ui/badge";
 import { 
   Upload, 
@@ -223,7 +223,7 @@ export default function UploadPage() {
     <>
       <Head>
         <title>Upload Documents - MaiStorage</title>
-        <meta name="description" content="Upload documents to the MaiStorage RAG system" />
+        <meta name="description" content="Upload documents to your MaiStorage knowledge base for intelligent search and Q&A" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -257,19 +257,6 @@ export default function UploadPage() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
               >
-                {/* Back button */}
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Link href="/chat">
-                    <Button variant="outline" size="sm" className="hidden sm:flex">
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Back to Chat
-                    </Button>
-                  </Link>
-                </motion.div>
-
                 {/* Dark mode toggle */}
                 <motion.div
                   whileHover={{ scale: 1.05 }}
@@ -283,6 +270,18 @@ export default function UploadPage() {
                     {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                   </Button>
                 </motion.div>
+                
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Link href="/">
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <ArrowLeft className="h-4 w-4" />
+                      Back to Home
+                    </Button>
+                  </Link>
+                </motion.div>
               </motion.div>
             </div>
           </div>
@@ -291,49 +290,73 @@ export default function UploadPage() {
         {/* Main Content */}
         <motion.main 
           className="container mx-auto px-4 py-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <div className="max-w-4xl mx-auto space-y-8">
+          <div className="max-w-4xl mx-auto">
             {/* Page Title */}
-            <motion.div 
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-            >
-              <h1 className="text-3xl font-bold tracking-tight mb-3">
+            <div className="text-center mb-12">
+              <motion.div 
+                className="flex justify-center mb-6"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
+                <div className="p-3 bg-primary/10 rounded-full">
+                  <Upload className="h-12 w-12 text-primary" />
+                </div>
+              </motion.div>
+              
+              <motion.h1 
+                className="text-4xl font-bold tracking-tight mb-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
                 Upload Documents
-              </h1>
-              <p className="text-lg text-muted-foreground mb-6">
+              </motion.h1>
+              <motion.p 
+                className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
+              >
                 Add documents to your knowledge base for intelligent search and Q&A
-              </p>
-              <div className="flex flex-wrap justify-center gap-2 text-sm text-muted-foreground">
-                <Badge variant="secondary">PDF</Badge>
-                <Badge variant="secondary">Markdown</Badge>
-                <Badge variant="secondary">HTML</Badge>
-                <Badge variant="secondary">TXT</Badge>
-              </div>
-            </motion.div>
+              </motion.p>
+              <motion.div 
+                className="flex gap-4 justify-center mb-12"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+              >
+                <Badge variant="success" className="gap-1">
+                  <CheckCircle className="h-3 w-3" />
+                  PDF
+                </Badge>
+                <Badge variant="info">Markdown</Badge>
+                <Badge variant="outline">HTML</Badge>
+                <Badge variant="outline">TXT</Badge>
+              </motion.div>
+            </div>
 
             {/* Upload Area */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.7 }}
             >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+              <div className="rounded-lg border bg-card p-6">
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
                     <Upload className="h-5 w-5" />
                     File Upload
-                  </CardTitle>
-                  <CardDescription>
+                  </h3>
+                  <p className="text-muted-foreground">
                     Drag and drop files here or click to browse. Supported formats: PDF, Markdown, HTML, and TXT.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
+                  </p>
+                </div>
+                <div>
                   {/* Drop Zone */}
                   <motion.div
                     className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
@@ -469,8 +492,8 @@ export default function UploadPage() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </motion.div>
 
             {/* Upload Results */}
@@ -482,17 +505,17 @@ export default function UploadPage() {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                  <div className="rounded-lg border bg-card p-6">
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
                         {hasErrors ? (
                           <AlertCircle className="h-5 w-5 text-orange-500" />
                         ) : (
                           <CheckCircle className="h-5 w-5 text-green-500" />
                         )}
                         Upload Results
-                      </CardTitle>
-                      <CardDescription>
+                      </h3>
+                      <p className="text-muted-foreground">
                         {hasSuccessfulUploads && (
                           <span className="text-green-600">
                             {files.filter(f => f.status === 'success').length} files uploaded successfully
@@ -504,9 +527,9 @@ export default function UploadPage() {
                             {files.filter(f => f.status === 'error').length} files failed
                           </span>
                         )}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
+                      </p>
+                    </div>
+                    <div>
                       {uploadResults.summary && (
                         <div className="space-y-2 text-sm">
                           <p><strong>Total Chunks Created:</strong> {uploadResults.summary.total_chunks}</p>
@@ -536,24 +559,24 @@ export default function UploadPage() {
                           </div>
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
             {/* Info Cards */}
             <motion.div 
-              className="grid md:grid-cols-2 gap-6"
+              className="grid md:grid-cols-2 gap-6 mt-12"
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
             >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Processing Pipeline</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm">
+              <div className="rounded-lg border bg-card p-6">
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-2">Processing Pipeline</h3>
+                </div>
+                <div className="space-y-3 text-sm">
                   <div className="flex items-start gap-3">
                     <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <span className="text-xs font-medium text-primary">1</span>
@@ -590,14 +613,14 @@ export default function UploadPage() {
                       <p className="text-muted-foreground">Vectors and metadata stored in Qdrant collection</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Best Practices</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm">
+              <div className="rounded-lg border bg-card p-6">
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-2">Best Practices</h3>
+                </div>
+                <div className="space-y-3 text-sm">
                   <div className="space-y-2">
                     <p className="font-medium">📄 Document Quality</p>
                     <p className="text-muted-foreground">Use well-structured documents with clear headings and content</p>
@@ -614,11 +637,13 @@ export default function UploadPage() {
                     <p className="font-medium">⚡ Performance</p>
                     <p className="text-muted-foreground">Upload in batches for better processing efficiency</p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </motion.div>
           </div>
         </motion.main>
+
+
       </div>
     </>
   );
