@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import Head from 'next/head'
 import { ChatInput } from '../src/components/ChatInput'
 import { ChatStream, useStreamingChat } from '../src/components/ChatStream'
@@ -20,9 +20,13 @@ export default function ChatPage() {
   } = useStreamingChat()
 
   const [darkMode, setDarkMode] = useState(false)
+  const mountedRef = useRef(false)
 
   // Initialize dark mode from localStorage or system preference
   useEffect(() => {
+    if (mountedRef.current) return // Prevent double execution in StrictMode
+    mountedRef.current = true
+    
     const savedDarkMode = localStorage.getItem('darkMode')
     const systemDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
     

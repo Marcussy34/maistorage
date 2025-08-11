@@ -55,6 +55,8 @@ export default async function handler(req, res) {
 
     // Parse the response from FastAPI (non-streaming baseline RAG)
     const data = await backendResponse.json()
+    // Debug log (remove in production)
+    // console.log('Backend response:', JSON.stringify(data, null, 2))
 
     // Convert the response to streaming format
     // Stream the tokens one by one to simulate streaming
@@ -78,24 +80,27 @@ export default async function handler(req, res) {
       const citationsData = {
         type: 'sources',
         citations: data.citations.map(citation => ({
-          title: citation.metadata?.title || citation.metadata?.doc_id || 'Unknown Source',
-          content: citation.content,
+          title: citation.doc_name || 'Unknown Document',
+          content: citation.text_snippet?.substring(0, 200) || 'No content preview available',
           score: citation.score,
-          metadata: citation.metadata
+          chunk_index: citation.chunk_index,
+          document_id: citation.document_id
         }))
       }
       res.write(JSON.stringify(citationsData) + '\n')
     }
 
     // Send metrics if available
-    if (data.metrics) {
+    if (data.retrieval_time_ms || data.generation_time_ms || data.total_time_ms) {
       const metricsData = {
         type: 'metrics',
         metrics: {
-          retrieval_time_ms: data.metrics.retrieval_time_ms,
-          llm_time_ms: data.metrics.llm_time_ms,
-          total_tokens: data.metrics.total_tokens,
-          total_time_ms: data.metrics.total_time_ms
+          retrieval_time_ms: data.retrieval_time_ms,
+          llm_time_ms: data.generation_time_ms,
+          total_tokens: data.tokens_used?.total_tokens,
+          total_time_ms: data.total_time_ms,
+          chunks_retrieved: data.chunks_retrieved,
+          model_used: data.model_used
         }
       }
       res.write(JSON.stringify(metricsData) + '\n')

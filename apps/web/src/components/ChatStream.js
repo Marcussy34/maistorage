@@ -49,7 +49,7 @@ export function ChatStream({ messages, onRetry, isLoading }) {
       )}
 
       {messages.map((msg, index) => (
-        <div key={index} className="space-y-2">
+        <div key={msg.id || index} className="space-y-2">
           {/* User Message */}
           {msg.type === 'user' && (
             <div className="flex justify-end">
@@ -92,13 +92,16 @@ export function ChatStream({ messages, onRetry, isLoading }) {
                       {msg.citations.map((citation, citIndex) => (
                         <div key={citIndex} className="text-xs bg-background/50 rounded px-2 py-1">
                           <div className="font-medium">{citation.title || `Source ${citIndex + 1}`}</div>
+                          {citation.chunk_index !== undefined && (
+                            <div className="text-muted-foreground text-xs">Chunk {citation.chunk_index}</div>
+                          )}
                           {citation.content && (
                             <div className="text-muted-foreground mt-1">
                               &quot;{citation.content.substring(0, 150)}...&quot;
                             </div>
                           )}
                           {citation.score && (
-                            <div className="text-muted-foreground">Score: {citation.score.toFixed(3)}</div>
+                            <div className="text-muted-foreground">Relevance: {citation.score.toFixed(3)}</div>
                           )}
                         </div>
                       ))}
@@ -110,11 +113,13 @@ export function ChatStream({ messages, onRetry, isLoading }) {
                 {msg.metrics && (
                   <div className="mt-2 text-xs text-muted-foreground">
                     {msg.metrics.retrieval_time_ms && 
-                      `Retrieval: ${msg.metrics.retrieval_time_ms}ms`}
+                      `Retrieval: ${Math.round(msg.metrics.retrieval_time_ms)}ms`}
                     {msg.metrics.llm_time_ms && 
-                      ` • LLM: ${msg.metrics.llm_time_ms}ms`}
+                      ` • LLM: ${Math.round(msg.metrics.llm_time_ms)}ms`}
                     {msg.metrics.total_tokens && 
                       ` • Tokens: ${msg.metrics.total_tokens}`}
+                    {msg.metrics.chunks_retrieved && 
+                      ` • Chunks: ${msg.metrics.chunks_retrieved}`}
                   </div>
                 )}
               </div>
@@ -176,9 +181,18 @@ export function useStreamingChat() {
   const [messages, setMessages] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const abortControllerRef = useRef(null)
+  const requestInProgressRef = useRef(false)
 
   const sendMessage = useCallback(async (query) => {
-    if (isLoading) return
+    if (isLoading || requestInProgressRef.current) return
+    
+    console.log('Sending message:', query)
+    requestInProgressRef.current = true
+    
+    // Prevent duplicate requests by aborting any existing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
 
     // Add user message immediately
     const userMessage = { type: 'user', content: query, id: Date.now() }
@@ -243,13 +257,18 @@ export function useStreamingChat() {
           if (!data) continue
 
           // Handle different types of streaming events
+          console.log('Received streaming data:', data)
           if (data.type === 'token') {
             // Append token to current assistant message
             setMessages(prev => {
               const newMessages = [...prev]
               const lastMessage = newMessages[newMessages.length - 1]
-              if (lastMessage.type === 'assistant') {
-                lastMessage.content += data.content
+              if (lastMessage && lastMessage.type === 'assistant') {
+                // Create a new message object to prevent mutation
+                newMessages[newMessages.length - 1] = {
+                  ...lastMessage,
+                  content: lastMessage.content + data.content
+                }
               }
               return newMessages
             })
@@ -258,8 +277,12 @@ export function useStreamingChat() {
             setMessages(prev => {
               const newMessages = [...prev]
               const lastMessage = newMessages[newMessages.length - 1]
-              if (lastMessage.type === 'assistant') {
-                lastMessage.citations = data.citations
+              if (lastMessage && lastMessage.type === 'assistant') {
+                // Create a new message object to prevent mutation
+                newMessages[newMessages.length - 1] = {
+                  ...lastMessage,
+                  citations: data.citations
+                }
               }
               return newMessages
             })
@@ -268,8 +291,12 @@ export function useStreamingChat() {
             setMessages(prev => {
               const newMessages = [...prev]
               const lastMessage = newMessages[newMessages.length - 1]
-              if (lastMessage.type === 'assistant') {
-                lastMessage.metrics = data.metrics
+              if (lastMessage && lastMessage.type === 'assistant') {
+                // Create a new message object to prevent mutation
+                newMessages[newMessages.length - 1] = {
+                  ...lastMessage,
+                  metrics: data.metrics
+                }
               }
               return newMessages
             })
@@ -291,11 +318,13 @@ export function useStreamingChat() {
           content: error.name === 'AbortError' 
             ? 'Request was cancelled' 
             : `Failed to get response: ${error.message}`,
-          originalQuery: query
+          originalQuery: query,
+          id: Date.now() + 3
         }]
       })
     } finally {
       setIsLoading(false)
+      requestInProgressRef.current = false
       abortControllerRef.current = null
     }
   }, [isLoading])
