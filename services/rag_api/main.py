@@ -99,7 +99,8 @@ async def startup_event():
             retriever=retriever,
             model=settings.openai_model,
             temperature=0.7,
-            api_key=settings.openai_api_key
+            api_key=settings.openai_api_key,
+            enable_sentence_citations=False  # Can be configured later
         )
         
         logger.info("Baseline RAG system initialized successfully")
@@ -109,7 +110,8 @@ async def startup_event():
             retriever=retriever,
             model=settings.openai_model,
             api_key=settings.openai_api_key,
-            temperature=0.7
+            temperature=0.7,
+            enable_sentence_citations=False  # Can be configured later
         )
         
         logger.info("Agentic RAG system initialized successfully")

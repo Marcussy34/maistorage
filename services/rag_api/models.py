@@ -250,3 +250,97 @@ class RetrievalConfig(BaseModel):
     hnsw_ef_construct: int = Field(default=256, description="HNSW ef_construct parameter")
     hnsw_m: int = Field(default=16, description="HNSW m parameter")
     hnsw_ef_search: int = Field(default=64, description="HNSW ef search parameter")
+
+
+# Phase 6: Sentence-level citation models
+class TextSpan(BaseModel):
+    """Represents a span of text within a larger document."""
+    
+    start: int = Field(..., description="Starting character index")
+    end: int = Field(..., description="Ending character index")
+    text: str = Field(..., description="Text content of the span")
+
+
+class SentenceCitation(BaseModel):
+    """Citation information for a single sentence with confidence."""
+    
+    sentence: str = Field(..., description="The sentence being cited")
+    sentence_index: int = Field(..., description="Index of sentence in the response")
+    
+    # Source information
+    source_document_id: str = Field(..., description="ID of supporting document")
+    source_doc_name: Optional[str] = Field(None, description="Name of supporting document")
+    source_chunk_index: Optional[int] = Field(None, description="Chunk index in document")
+    
+    # Attribution details
+    supporting_span: TextSpan = Field(..., description="Specific text span that supports this sentence")
+    attribution_score: float = Field(..., description="Confidence score for this attribution", ge=0.0, le=1.0)
+    attribution_method: str = Field(..., description="Method used for attribution (e.g., 'cosine_similarity', 'llm_alignment')")
+    
+    # Quality indicators
+    confidence_level: str = Field(..., description="Confidence level: 'high', 'medium', 'low'")
+    needs_warning: bool = Field(default=False, description="Whether to show ⚠️ warning for low confidence")
+    
+    # Optional enhancement
+    rephrased_sentence: Optional[str] = Field(None, description="LLM-enhanced sentence for better alignment")
+
+
+class SentenceAttributionResult(BaseModel):
+    """Complete sentence-level attribution for a response."""
+    
+    response_text: str = Field(..., description="Full response text")
+    sentences: List[str] = Field(..., description="Individual sentences extracted from response")
+    
+    # Attribution results
+    sentence_citations: List[SentenceCitation] = Field(..., description="Citation for each sentence")
+    overall_confidence: float = Field(..., description="Overall confidence across all sentences", ge=0.0, le=1.0)
+    
+    # Quality metrics
+    sentences_with_citations: int = Field(..., description="Number of sentences with citations")
+    sentences_with_warnings: int = Field(..., description="Number of sentences with low confidence warnings")
+    attribution_coverage: float = Field(..., description="Percentage of sentences with citations", ge=0.0, le=1.0)
+    
+    # Performance
+    attribution_time_ms: float = Field(..., description="Time taken for attribution in milliseconds")
+    
+    # Source mapping
+    unique_sources: List[str] = Field(..., description="List of unique source document IDs")
+    source_usage_counts: Dict[str, int] = Field(..., description="How many sentences cite each source")
+
+
+class EnhancedCitation(BaseModel):
+    """Enhanced citation combining chunk-level and sentence-level information."""
+    
+    # Legacy chunk-level fields (for backward compatibility)
+    document_id: str = Field(..., description="Document identifier")
+    doc_name: Optional[str] = Field(None, description="Document name")
+    chunk_index: Optional[int] = Field(None, description="Chunk index")
+    score: float = Field(..., description="Chunk relevance score")
+    text_snippet: str = Field(..., description="Relevant text snippet from chunk")
+    
+    # New sentence-level attribution
+    sentence_attributions: List[SentenceCitation] = Field(default_factory=list, description="Sentence-level attributions for this source")
+    attribution_summary: Optional[str] = Field(None, description="Summary of what this source supports")
+    confidence_level: str = Field(default="medium", description="Overall confidence for this source")
+
+
+class CitationEngineConfig(BaseModel):
+    """Configuration for the sentence-level citation engine."""
+    
+    # Attribution thresholds
+    high_confidence_threshold: float = Field(default=0.8, description="Threshold for high confidence", ge=0.0, le=1.0)
+    medium_confidence_threshold: float = Field(default=0.6, description="Threshold for medium confidence", ge=0.0, le=1.0)
+    warning_threshold: float = Field(default=0.4, description="Below this threshold, show warning", ge=0.0, le=1.0)
+    
+    # Processing options
+    enable_sentence_rephrasing: bool = Field(default=False, description="Enable LLM-based sentence rephrasing")
+    min_sentence_length: int = Field(default=10, description="Minimum sentence length to process")
+    max_sentences_per_response: int = Field(default=50, description="Maximum sentences to process")
+    
+    # Attribution method
+    primary_attribution_method: str = Field(default="cosine_similarity", description="Primary attribution method")
+    fallback_attribution_method: str = Field(default="keyword_overlap", description="Fallback attribution method")
+    
+    # Performance limits
+    max_attribution_time_ms: float = Field(default=5000.0, description="Maximum time to spend on attribution")
+    batch_size: int = Field(default=10, description="Batch size for sentence processing")

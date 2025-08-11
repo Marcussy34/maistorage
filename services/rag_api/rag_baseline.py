@@ -20,11 +20,12 @@ from pydantic import BaseModel, Field
 # Local imports
 from models import (
     RetrievalRequest, RetrievalResponse, RetrievalResult, Document,
-    RetrievalMethod, RerankMethod
+    RetrievalMethod, RerankMethod, CitationEngineConfig
 )
 from retrieval import HybridRetriever
 from llm_client import LLMClient, LLMConfig, LLMResponse
 from prompts.baseline import format_baseline_prompt, format_context_from_results
+from citer import SentenceCitationEngine, create_citation_engine
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,7 @@ class RAGRequest(BaseModel):
     # Output control
     include_context: bool = Field(default=True, description="Include retrieved context in response")
     include_citations: bool = Field(default=True, description="Include chunk-level citations")
+    enable_sentence_citations: bool = Field(default=False, description="Enable sentence-level attribution")
 
 
 class Citation(BaseModel):
@@ -71,6 +73,9 @@ class RAGResponse(BaseModel):
     # Citations and sources
     citations: List[Citation] = Field(default_factory=list, description="Source citations")
     context_used: Optional[str] = Field(None, description="Full context provided to LLM")
+    
+    # Sentence-level attribution (Phase 6)
+    sentence_attribution: Optional[Dict[str, Any]] = Field(None, description="Sentence-level attribution results")
     
     # Performance metrics
     retrieval_time_ms: float = Field(..., description="Time spent on retrieval")
@@ -101,7 +106,8 @@ class BaselineRAG:
         self,
         retriever: HybridRetriever,
         llm_client: Optional[LLMClient] = None,
-        llm_config: Optional[LLMConfig] = None
+        llm_config: Optional[LLMConfig] = None,
+        citation_engine: Optional[SentenceCitationEngine] = None
     ):
         """
         Initialize baseline RAG system.
@@ -110,8 +116,10 @@ class BaselineRAG:
             retriever: Hybrid retriever instance from Phase 2
             llm_client: Optional pre-configured LLM client
             llm_config: LLM configuration if creating new client
+            citation_engine: Optional sentence-level citation engine (Phase 6)
         """
         self.retriever = retriever
+        self.citation_engine = citation_engine
         
         # Set up LLM client
         if llm_client:
@@ -172,7 +180,20 @@ class BaselineRAG:
             # Step 4: Create citations
             citations = self._create_citations(retrieval_response.results)
             
-            # Step 5: Build response
+            # Step 5: Generate sentence-level attributions if enabled
+            sentence_attribution = None
+            if request.enable_sentence_citations and self.citation_engine:
+                try:
+                    attribution_result = await self.citation_engine.generate_sentence_citations(
+                        response_text=llm_response.content,
+                        retrieval_results=retrieval_response.results
+                    )
+                    sentence_attribution = attribution_result.dict()
+                    logger.info(f"Sentence attribution completed: {attribution_result.attribution_coverage:.2%} coverage")
+                except Exception as e:
+                    logger.warning(f"Sentence attribution failed: {e}")
+            
+            # Step 6: Build response
             total_time_ms = (time.time() - start_time) * 1000
             
             # Update stats
@@ -185,6 +206,7 @@ class BaselineRAG:
                 answer=llm_response.content,
                 citations=citations,
                 context_used=context if request.include_context else None,
+                sentence_attribution=sentence_attribution,
                 retrieval_time_ms=retrieval_time_ms,
                 generation_time_ms=generation_time_ms,
                 total_time_ms=total_time_ms,
@@ -302,6 +324,7 @@ def create_baseline_rag(
     retriever: HybridRetriever,
     model: str = "gpt-4o-mini",
     temperature: float = 0.7,
+    enable_sentence_citations: bool = False,
     **kwargs
 ) -> BaselineRAG:
     """
@@ -311,6 +334,7 @@ def create_baseline_rag(
         retriever: Hybrid retriever instance
         model: OpenAI model name
         temperature: Default temperature for generation
+        enable_sentence_citations: Whether to enable sentence-level citations (Phase 6)
         **kwargs: Additional LLM configuration parameters
         
     Returns:
@@ -322,4 +346,25 @@ def create_baseline_rag(
         **kwargs
     )
     
-    return BaselineRAG(retriever=retriever, llm_config=llm_config)
+    # Create citation engine if sentence citations are enabled
+    citation_engine = None
+    if enable_sentence_citations:
+        try:
+            # Create LLM client for citation engine
+            llm_client = LLMClient(llm_config)
+            
+            # Create citation engine directly (synchronous creation)
+            citation_engine = SentenceCitationEngine(
+                retriever=retriever,
+                llm_client=llm_client,
+                config=CitationEngineConfig()
+            )
+            logger.info("Sentence citation engine enabled for baseline RAG")
+        except Exception as e:
+            logger.warning(f"Failed to create citation engine: {e}")
+    
+    return BaselineRAG(
+        retriever=retriever, 
+        llm_config=llm_config,
+        citation_engine=citation_engine
+    )

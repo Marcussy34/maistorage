@@ -17,10 +17,11 @@ from pydantic import BaseModel
 
 from llm_client import LLMClient, LLMConfig
 from retrieval import HybridRetriever, RetrievalRequest
-from models import RetrievalMethod, RerankMethod
+from models import RetrievalMethod, RerankMethod, CitationEngineConfig
 from prompts.planner import format_planner_prompt
 from prompts.baseline import format_baseline_prompt, format_context_from_results
 from prompts.verifier import format_verifier_prompt, format_faithfulness_check
+from citer import SentenceCitationEngine, create_citation_engine
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +95,10 @@ class AgentState(TypedDict):
     # Configuration
     top_k: int
     enable_verification: bool
+    enable_sentence_citations: bool
+    
+    # Sentence-level citations (Phase 6)
+    sentence_attribution: Optional[Dict[str, Any]]
 
 
 class AgenticRAG:
@@ -111,7 +116,8 @@ class AgenticRAG:
         self,
         retriever: HybridRetriever,
         llm_config: Optional[LLMConfig] = None,
-        max_refinements: int = 2
+        max_refinements: int = 2,
+        citation_engine: Optional[SentenceCitationEngine] = None
     ):
         """
         Initialize the agentic RAG system.
@@ -120,9 +126,11 @@ class AgenticRAG:
             retriever: Hybrid retriever for document search
             llm_config: Configuration for LLM client
             max_refinements: Maximum number of refinement iterations
+            citation_engine: Optional sentence-level citation engine (Phase 6)
         """
         self.retriever = retriever
         self.max_refinements = max_refinements
+        self.citation_engine = citation_engine
         
         # Initialize LLM client for all agent components
         self.llm = LLMClient(llm_config or LLMConfig())
@@ -386,6 +394,53 @@ class AgenticRAG:
             response = await self.llm.achat_completion(synthesis_messages)
             answer = response.content
             
+            # Generate sentence-level attributions if enabled
+            sentence_attribution = None
+            if state.get("enable_sentence_citations", False) and self.citation_engine:
+                try:
+                    logger.info("Generating sentence-level citations for agentic answer")
+                    
+                    # Convert retrieval results back to RetrievalResult objects
+                    from models import RetrievalResult, Document
+                    retrieval_results = []
+                    for result_dict in state.get("retrieval_results", []):
+                        # Reconstruct RetrievalResult from dictionary
+                        doc_data = result_dict.get("document", {})
+                        document = Document(
+                            id=doc_data.get("id", "unknown"),
+                            text=doc_data.get("text", ""),
+                            metadata=doc_data.get("metadata", {}),
+                            doc_name=doc_data.get("doc_name"),
+                            chunk_index=doc_data.get("chunk_index"),
+                            total_chunks=doc_data.get("total_chunks"),
+                            file_type=doc_data.get("file_type"),
+                            char_count=doc_data.get("char_count"),
+                            start_index=doc_data.get("start_index")
+                        )
+                        
+                        retrieval_result = RetrievalResult(
+                            document=document,
+                            scores=result_dict.get("scores", {}),
+                            dense_score=result_dict.get("dense_score"),
+                            bm25_score=result_dict.get("bm25_score"),
+                            hybrid_score=result_dict.get("hybrid_score"),
+                            rerank_score=result_dict.get("rerank_score"),
+                            final_score=result_dict.get("final_score")
+                        )
+                        retrieval_results.append(retrieval_result)
+                    
+                    # Generate sentence attribution
+                    attribution_result = await self.citation_engine.generate_sentence_citations(
+                        response_text=answer,
+                        retrieval_results=retrieval_results
+                    )
+                    
+                    sentence_attribution = attribution_result.dict()
+                    logger.info(f"Sentence attribution completed: {attribution_result.attribution_coverage:.2%} coverage")
+                    
+                except Exception as e:
+                    logger.warning(f"Sentence attribution failed in agentic workflow: {e}")
+            
             # Calculate step time
             step_time = (time.time() - start_time) * 1000
             
@@ -396,7 +451,8 @@ class AgenticRAG:
                 data={
                     "answer_length": len(answer),
                     "time_ms": step_time,
-                    "tokens_used": response.usage.get("total_tokens", 0)
+                    "tokens_used": response.usage.get("total_tokens", 0),
+                    "sentence_attribution_enabled": bool(sentence_attribution)
                 }
             )
             
@@ -406,6 +462,7 @@ class AgenticRAG:
             
             return {
                 "answer": answer,
+                "sentence_attribution": sentence_attribution,
                 "current_step": AgentStep.VERIFIER if state.get("enable_verification", True) else AgentStep.DONE,
                 "step_times": {**state.get("step_times", {}), "synthesizer": step_time},
                 "trace_events": new_trace_events
@@ -690,7 +747,9 @@ class AgenticRAG:
             step_times={},
             trace_events=[],
             top_k=top_k,
-            enable_verification=enable_verification
+            enable_verification=enable_verification,
+            enable_sentence_citations=bool(self.citation_engine),
+            sentence_attribution=None
         )
         
         logger.info(f"Starting agentic RAG workflow for query: {query}")
@@ -750,6 +809,7 @@ def create_agentic_rag(
     retriever: HybridRetriever,
     model: str = "gpt-4o-mini",
     api_key: Optional[str] = None,
+    enable_sentence_citations: bool = False,
     **kwargs
 ) -> AgenticRAG:
     """
@@ -759,6 +819,7 @@ def create_agentic_rag(
         retriever: Hybrid retriever instance
         model: LLM model name
         api_key: OpenAI API key
+        enable_sentence_citations: Whether to enable sentence-level citations (Phase 6)
         **kwargs: Additional configuration
         
     Returns:
@@ -770,4 +831,25 @@ def create_agentic_rag(
         **kwargs
     )
     
-    return AgenticRAG(retriever=retriever, llm_config=llm_config)
+    # Create citation engine if sentence citations are enabled
+    citation_engine = None
+    if enable_sentence_citations:
+        try:
+            # Create LLM client for citation engine
+            llm_client = LLMClient(llm_config)
+            
+            # Create citation engine directly (synchronous creation)
+            citation_engine = SentenceCitationEngine(
+                retriever=retriever,
+                llm_client=llm_client,
+                config=CitationEngineConfig()
+            )
+            logger.info("Sentence citation engine enabled for agentic RAG")
+        except Exception as e:
+            logger.warning(f"Failed to create citation engine: {e}")
+    
+    return AgenticRAG(
+        retriever=retriever, 
+        llm_config=llm_config,
+        citation_engine=citation_engine
+    )
