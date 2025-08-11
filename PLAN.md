@@ -4,11 +4,26 @@ This plan is organized into **clear, sequential phases** with objectives, tasks,
 
 ---
 
+## Models & Configuration (Explicit)
+
+- **Answering LLM (default):** **OpenAI `gpt-5-mini`** (fast, cost-efficient; used for baseline answering, planner, verifier).  
+  - Swappable via `OPENAI_MODEL=gpt-5-mini`.
+- **Embeddings (retrieval):** **OpenAI `text-embedding-3-small`** for chunk/query embeddings.  
+  - Swappable via `EMBEDDING_MODEL=text-embedding-3-small`.
+- **Reranker (cross-encoder):** **`bge-reranker-v2`** (open-source) for reranking top dense+BM25 candidates.
+- **Fallback LLM (offline/dev):** `Llama-3.1-8B-Instruct` via Ollama (optional).
+- **Env vars:** `OPENAI_API_KEY`, `OPENAI_BASE_URL` (if proxying), `OPENAI_MODEL`, `EMBEDDING_MODEL`.
+
+> Prompt templates (system / planner / verifier) live in `/services/rag_api/prompts/` and reference the model names above.
+
+---
+
 ## Table of Contents
 
 - [Phase 0 — Repo Bootstrap & Standards](#phase-0--repo-bootstrap--standards)
 - [Phase 1 — Ingestion & Indexer MVP](#phase-1--ingestion--indexer-mvp)
 - [Phase 2 — Retrieval Core (Hybrid + Rerank)](#phase-2--retrieval-core-hybrid--rerank)
+- [Phase 2.5 — LLM Setup & Prompt Templates](#phase-25--llm-setup--prompt-templates)
 - [Phase 3 — Baseline RAG (Traditional)](#phase-3--baseline-rag-traditional)
 - [Phase 4 — Next.js Frontend (Streaming Shell)](#phase-4--nextjs-frontend-streaming-shell)
 - [Phase 5 — Agentic Loop (LangGraph) + Streaming](#phase-5--agentic-loop-langgraph--streaming)
@@ -38,7 +53,7 @@ Create a clean monorepo and shared conventions to accelerate all downstream work
   /infrastructure (docker-compose, .env.example)
   ```
 - Tooling: `ruff`, `black`, `isort`, `eslint`, `prettier`, `pre-commit`, Makefile.
-- Basic README + `.env.example`.
+- Basic README + `.env.example` with **`OPENAI_API_KEY`, `OPENAI_MODEL=gpt-5-mini`, `EMBEDDING_MODEL=text-embedding-3-small`**.
 
 **Tasks**
 - Initialize repos, package managers (`pnpm` for web, `uv`/`pip` for py).
@@ -68,7 +83,7 @@ Load raw docs → split into semantic chunks → embed → upsert to Qdrant.
 **Tasks**
 - Implement loaders (PDF/MD/HTML). Handle OCR or skip as needed.
 - Semantic chunking (200–500 tokens, 15–20% overlap).
-- Embeddings: **bge-m3**; store full text + metadata.
+- **Embeddings:** call **OpenAI `text-embedding-3-small`** to embed chunks/queries; store full text + metadata.
 - CLI: `python ingest.py --path ./data`.
 
 **Acceptance (Exit)**
@@ -90,7 +105,7 @@ Return high-quality, diverse chunks via hybrid retrieval + reranking.
 - Endpoint `POST /retrieve` → ranked chunks with scores.
 
 **Tasks**
-- Dense search (Qdrant) + BM25 (Elasticsearch or in-proc BM25).
+- Dense search (Qdrant vectors from **`text-embedding-3-small`**) + BM25 (Elasticsearch or in-proc BM25).
 - **RRF** to fuse lists; **cross-encoder** rerank (`bge-reranker-v2`) top-100 → top-15.
 - **MMR** to improve diversity; configurable top-k.
 
@@ -104,6 +119,31 @@ Return high-quality, diverse chunks via hybrid retrieval + reranking.
 
 ---
 
+## Phase 2.5 — LLM Setup & Prompt Templates
+
+**Objective**  
+Explicitly configure the LLM and prompt scaffolding for all chains/agents.
+
+**Deliverables**
+- `/services/rag_api/models.py` with **`gpt-5-mini`** client and swappable interface.
+- `/services/rag_api/prompts/` with **baseline**, **planner**, **verifier** templates.
+- Smoke tests: model responds without retrieval.
+
+**Tasks**
+- Implement OpenAI client; read `OPENAI_API_KEY`, `OPENAI_MODEL=gpt-5-mini` from env.
+- Create standard prompts and variables (style, tone, citation placeholders).
+- Add a tiny harness to test raw generation latency and token usage.
+
+**Acceptance (Exit)**
+- `gpt-5-mini` returns coherent text for a simple prompt.
+- Prompts load and render without errors.
+- Latency and token logs captured.
+
+**Inputs/Dependencies**: Phase 0 complete.  
+**Est. Duration**: 0.5 day.
+
+---
+
 ## Phase 3 — Baseline RAG (Traditional)
 
 **Objective**  
@@ -114,7 +154,7 @@ Establish a one-pass RAG baseline and a gold QA set.
 - Golden QA JSON (10–20 items) to drive evals later.
 
 **Tasks**
-- Query → retrieve top-k → pack context → LLM generate.
+- Query → retrieve top-k → pack context → **LLM (`gpt-5-mini`) generate**.
 - Return answer + **chunk-level citations**.
 
 **Acceptance (Exit)**
@@ -122,7 +162,7 @@ Establish a one-pass RAG baseline and a gold QA set.
 - Citations list shows supporting chunks.
 - Golden QA file created.
 
-**Inputs/Dependencies**: Phase 2 retrieval.  
+**Inputs/Dependencies**: Phase 2 retrieval, Phase 2.5 LLM.  
 **Est. Duration**: 0.5–1 day.
 
 ---
@@ -161,7 +201,7 @@ Planner → Retrieve → Synthesize → **Verifier** → Refine → Finalize; st
 - `POST /chat/stream?agentic=1` emitting NDJSON events: `token`, `trace`, `sources`, `metrics`, `done`.
 
 **Tasks**
-- Define LangGraph state machine and nodes.
+- Define LangGraph state machine and nodes; **use `gpt-5-mini`** for **Planner**, **Synthesis**, **Verifier**.
 - Add query decomposition, alias expansion when needed.
 - Implement verifier (faithfulness/coverage) with retry loop.
 
@@ -169,7 +209,7 @@ Planner → Retrieve → Synthesize → **Verifier** → Refine → Finalize; st
 - Multi-hop/ambiguous queries trigger at least one refine pass.
 - Stable `trace` event schema logged and viewable.
 
-**Inputs/Dependencies**: Phase 2 retrieval; Phase 4 streaming UI.  
+**Inputs/Dependencies**: Phase 2 retrieval; Phase 4 streaming UI; Phase 2.5 LLM.  
 **Est. Duration**: 1–1.5 days.
 
 ---
@@ -185,6 +225,7 @@ Upgrade from chunk-level to **sentence-level** citations with confidence.
 
 **Tasks**
 - Post-hoc attribution: sentence embeddings → best supporting chunk (cosine sim).
+- (Optional) Use `gpt-5-mini` to rephrase sentences for better alignment (no new claims).
 - Mark low-confidence with ⚠️; optional auto-refine hook.
 
 **Acceptance (Exit)**
@@ -343,10 +384,11 @@ Enable quick onboarding and a compelling demo.
 | Thought process & implementation flow | 12 | `ARCHITECTURE.md` + diagrams + notes |
 | Investigation of Agentic RAG as a whole | 5, 8, 12 | Trace screenshots, EVAL.md discussion |
 | Differences: traditional vs agentic RAG | 3, 5, 8, 7 | Mode toggle + side-by-side metrics on `/eval` |
-| Any open-source libraries | 0–12 | bge-m3, Qdrant, LangGraph, bge-reranker, RAGAS |
+| Any open-source libraries | 0–12 | bge-reranker-v2, Qdrant, (optionally Llama) |
 | Test cases for quality | 8, 11 | RAGAS suite + unit/E2E tests |
 | Bonus: citations handling | 6, 7 | Sentence-level attribution + UI hovers |
 | Bonus: optimized retrieval | 2, 9 | Fusion, rerank, MMR, HNSW tuning, caching |
+| **Explicit model choices** | **0, 1, 2.5, 3, 5** | `gpt-5-mini` for generation & agents; `text-embedding-3-small` for embeddings |
 
 ---
 
@@ -362,6 +404,8 @@ python ingest.py --path ./data
 
 # API
 cd ../rag_api
+export OPENAI_MODEL=gpt-5-mini
+export EMBEDDING_MODEL=text-embedding-3-small
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 # Web
@@ -376,4 +420,3 @@ pnpm dev
 - Build **retrieval quality first** (Phase 2) before agent loops (Phase 5).
 - Finalize **citations payload** (Phase 6) before heavy UI polish (Phase 7).
 - Use **evaluation** (Phase 8) to guide **tuning** (Phase 9); re-run after changes.
-
