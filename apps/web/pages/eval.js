@@ -15,7 +15,8 @@ import {
   PlayCircle,
   RefreshCw,
   Download,
-  ArrowLeft
+  ArrowLeft,
+  Upload
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -172,7 +173,13 @@ export default function EvaluationPage() {
                   RAGAS metrics and performance comparison between Traditional and Agentic RAG
                 </p>
               </div>
-              <div className="flex space-x-3">
+              <div className="flex flex-wrap gap-3">
+                <Link href="/upload">
+                  <Button variant="outline" className="flex items-center">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Docs
+                  </Button>
+                </Link>
                 <Button
                   onClick={() => runEvaluation('traditional')}
                   disabled={isRunningEvaluation}

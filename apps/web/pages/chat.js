@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react'
 import Head from 'next/head'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ChatInput } from '../src/components/ChatInput'
 import { ChatStream, useStreamingChat } from '../src/components/ChatStream'
 import { Button } from '../src/components/ui/button'
 import { CompactModeToggle, ModeStatus } from '../src/components/ModeToggle'
-import { Trash2, Moon, Sun, MessageSquare } from 'lucide-react'
+import { Trash2, Moon, Sun, MessageSquare, Upload, BarChart3 } from 'lucide-react'
 
 /**
  * Main chat page for the MaiStorage RAG system
@@ -142,6 +143,32 @@ export default function ChatPage() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
+            {/* Upload button */}
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link href="/upload">
+                <Button variant="outline" size="sm" className="hidden sm:flex">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload
+                </Button>
+              </Link>
+            </motion.div>
+
+            {/* Eval button */}
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link href="/eval">
+                <Button variant="outline" size="sm" className="hidden sm:flex">
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Eval
+                </Button>
+              </Link>
+            </motion.div>
+
             {/* Mode toggle */}
             <motion.div
               whileHover={{ scale: 1.05 }}

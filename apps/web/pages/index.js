@@ -144,7 +144,7 @@ export default function Home() {
             </motion.p>
 
             <motion.div 
-              className="flex gap-4 justify-center mb-8"
+              className="flex flex-wrap gap-4 justify-center mb-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.7 }}
@@ -157,6 +157,17 @@ export default function Home() {
                   <Button size="lg" className="gap-2">
                     <MessageSquare className="h-5 w-5" />
                     Try Chat Interface
+                  </Button>
+                </Link>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Link href="/upload">
+                  <Button variant="outline" size="lg" className="gap-2">
+                    <Database className="h-5 w-5" />
+                    Upload Documents
                   </Button>
                 </Link>
               </motion.div>
