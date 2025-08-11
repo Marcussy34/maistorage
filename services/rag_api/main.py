@@ -10,21 +10,46 @@ import time
 from datetime import datetime
 from typing import Optional, AsyncGenerator
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from pydantic import validator, Field
 from pydantic_settings import BaseSettings
 import uvicorn
+
+# Phase 10 imports
+from logging_config import (
+    RequestContextMiddleware, 
+    setup_development_logging, 
+    setup_production_logging,
+    get_logger,
+    PerformanceLogger
+)
+from middleware import (
+    RequestSizeLimitMiddleware,
+    RateLimitMiddleware,
+    CircuitBreakerMiddleware,
+    SecurityHeadersMiddleware,
+    ErrorBoundaryMiddleware
+)
 
 # Local imports
 from models import (
     RetrievalRequest, RetrievalResponse, HealthCheck, 
     ErrorResponse, ErrorDetail, CollectionInfo
 )
+import psutil
+import subprocess
 from retrieval import HybridRetriever
 from rag_baseline import BaselineRAG, RAGRequest, RAGResponse, create_baseline_rag
 from llm_client import LLMConfig
 from graph import AgenticRAG, create_agentic_rag, TraceEvent, TraceEventType
+from monitoring import (
+    get_metrics_collector,
+    metrics_endpoint,
+    stats_endpoint,
+    health_detailed_endpoint
+)
 
 # Configure logging
 logging.basicConfig(
@@ -35,27 +60,145 @@ logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
-    """Application settings with environment variable support."""
+    """Application settings with comprehensive environment validation."""
     
+    # Core application settings
     app_name: str = "MAI Storage RAG API"
-    openai_api_key: str = ""
-    openai_model: str = "gpt-4o-mini"
-    embedding_model: str = "text-embedding-3-small"
-    reranker_model: str = "BAAI/bge-reranker-v2-m3"
-    qdrant_url: str = "http://localhost:6333"
+    environment: str = Field(default="development", description="Deployment environment")
+    debug: bool = Field(default=True, description="Enable debug mode")
+    log_level: str = Field(default="INFO", regex="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
+    
+    # API Keys and authentication
+    openai_api_key: str = Field(..., description="OpenAI API key (required)")
+    openai_base_url: str = Field(default="https://api.openai.com/v1", description="OpenAI API base URL")
+    
+    # Model configuration
+    openai_model: str = Field(default="gpt-4o-mini", description="OpenAI model for generation")
+    embedding_model: str = Field(default="text-embedding-3-small", description="OpenAI embedding model")
+    reranker_model: str = Field(default="BAAI/bge-reranker-v2-m3", description="Reranker model")
+    
+    # Service URLs
+    qdrant_url: str = Field(default="http://localhost:6333", description="Qdrant database URL")
+    qdrant_api_key: str = Field(default="", description="Qdrant API key (optional)")
+    elasticsearch_url: str = Field(default="http://localhost:9200", description="Elasticsearch URL")
+    
+    # Performance and limits
+    max_request_size: int = Field(default=10_000_000, description="Max request size in bytes (10MB)")
+    max_query_length: int = Field(default=8192, description="Max query length in characters")
+    max_top_k: int = Field(default=100, description="Maximum top_k for retrieval")
+    request_timeout: int = Field(default=300, description="Request timeout in seconds")
+    
+    # Rate limiting
+    rate_limit_requests: int = Field(default=100, description="Rate limit requests per minute")
+    rate_limit_burst: int = Field(default=20, description="Rate limit burst capacity")
+    
+    # Tracing and monitoring
+    enable_tracing: bool = Field(default=False, description="Enable distributed tracing")
+    langfuse_public_key: str = Field(default="", description="Langfuse public key")
+    langfuse_secret_key: str = Field(default="", description="Langfuse secret key")
+    langchain_tracing_v2: bool = Field(default=False, description="Enable LangChain tracing")
+    
+    # Database connection settings
+    qdrant_timeout: int = Field(default=60, description="Qdrant connection timeout")
+    qdrant_prefer_grpc: bool = Field(default=False, description="Prefer gRPC for Qdrant")
+    
+    # Cache settings
+    enable_cache: bool = Field(default=True, description="Enable caching")
+    cache_ttl: int = Field(default=3600, description="Cache TTL in seconds")
+    
+    @validator('openai_api_key')
+    def validate_openai_api_key(cls, v):
+        if not v or not v.startswith('sk-'):
+            raise ValueError('OPENAI_API_KEY must be provided and start with "sk-"')
+        return v
+    
+    @validator('qdrant_url')
+    def validate_qdrant_url(cls, v):
+        if not v.startswith(('http://', 'https://')):
+            raise ValueError('QDRANT_URL must be a valid HTTP/HTTPS URL')
+        return v
+    
+    @validator('environment')
+    def validate_environment(cls, v):
+        allowed_envs = ['development', 'staging', 'production']
+        if v not in allowed_envs:
+            raise ValueError(f'ENVIRONMENT must be one of: {allowed_envs}')
+        return v
+    
+    @validator('max_request_size')
+    def validate_max_request_size(cls, v):
+        if v < 1_000_000 or v > 100_000_000:  # 1MB to 100MB
+            raise ValueError('MAX_REQUEST_SIZE must be between 1MB and 100MB')
+        return v
+    
+    @validator('max_query_length')
+    def validate_max_query_length(cls, v):
+        if v < 10 or v > 32768:  # 10 chars to 32k chars
+            raise ValueError('MAX_QUERY_LENGTH must be between 10 and 32768 characters')
+        return v
+    
+    @validator('rate_limit_requests')
+    def validate_rate_limit_requests(cls, v):
+        if v < 1 or v > 10000:
+            raise ValueError('RATE_LIMIT_REQUESTS must be between 1 and 10000')
+        return v
+    
+    def is_production(self) -> bool:
+        """Check if running in production environment."""
+        return self.environment == "production"
+    
+    def get_log_config(self) -> dict:
+        """Get logging configuration based on environment."""
+        return {
+            "level": self.log_level,
+            "json_logs": self.is_production(),
+            "enable_tracing": self.enable_tracing
+        }
     
     class Config:
         env_file = "../../.env"
-        extra = "ignore"  # Ignore extra fields in .env file
+        env_file_encoding = 'utf-8'
+        extra = "ignore"
+        case_sensitive = False
 
 
 settings = Settings()
 
+# Initialize logging based on environment
+if settings.is_production():
+    setup_production_logging()
+else:
+    setup_development_logging()
+
+# Get structured logger
+logger = get_logger(__name__)
+
+# Initialize tracing if enabled
+from logging_config import get_tracing_adapter
+tracing_adapter = get_tracing_adapter()
+if settings.enable_tracing:
+    logger.info("tracing_enabled", 
+                langfuse=bool(settings.langfuse_public_key),
+                langchain=settings.langchain_tracing_v2)
+
 app = FastAPI(
     title=settings.app_name,
     description="Agentic RAG API with hybrid retrieval, reranking, and MMR diversity",
-    version="0.2.0",
+    version="0.3.0",  # Phase 10 version
 )
+
+# Add middleware stack (order matters - last added runs first)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(ErrorBoundaryMiddleware)
+app.add_middleware(CircuitBreakerMiddleware, 
+                   failure_threshold=5, 
+                   recovery_timeout=60)
+app.add_middleware(RateLimitMiddleware,
+                   requests_per_minute=settings.rate_limit_requests,
+                   burst_capacity=settings.rate_limit_burst)
+app.add_middleware(RequestSizeLimitMiddleware, 
+                   max_request_size=settings.max_request_size)
+app.add_middleware(RequestContextMiddleware)
 
 # CORS configuration for Next.js frontend
 app.add_middleware(
@@ -187,7 +330,7 @@ async def read_root():
 
 @app.get("/health", response_model=HealthCheck)
 async def health_check(retriever_instance: HybridRetriever = Depends(get_retriever)):
-    """Comprehensive health check."""
+    """Comprehensive health check with enhanced diagnostics."""
     uptime_seconds = time.time() - app_start_time
     
     # Check component health
@@ -196,40 +339,55 @@ async def health_check(retriever_instance: HybridRetriever = Depends(get_retriev
     reranker_healthy = True
     
     try:
-        # Test Qdrant connection
-        retriever_instance.qdrant_client.get_collections()
+        # Test Qdrant connection with timeout
+        collections = retriever_instance.qdrant_client.get_collections()
+        logger.debug(f"Qdrant collections: {len(collections.collections) if collections else 0}")
     except Exception as e:
-        logger.warning(f"Qdrant health check failed: {e}")
+        logger.warning("qdrant_health_check_failed", error=str(e))
         qdrant_healthy = False
     
     try:
-        # Test embeddings (quick test)
-        await retriever_instance.embed_query("test")
+        # Test embeddings (quick test with timeout)
+        with PerformanceLogger("health_check_embedding"):
+            await retriever_instance.embed_query("health check")
     except Exception as e:
-        logger.warning(f"Embeddings health check failed: {e}")
+        logger.warning("embeddings_health_check_failed", error=str(e))
         embeddings_healthy = False
     
     try:
         # Test reranker model (lazy loading check)
         _ = retriever_instance.reranker_model
     except Exception as e:
-        logger.warning(f"Reranker health check failed: {e}")
+        logger.warning("reranker_health_check_failed", error=str(e))
         reranker_healthy = False
     
-    # Get stats
+    # Get system metrics
+    try:
+        memory_info = psutil.virtual_memory()
+        cpu_percent = psutil.cpu_percent(interval=1)
+        memory_usage_mb = memory_info.used / 1024 / 1024
+    except Exception as e:
+        logger.warning("system_metrics_failed", error=str(e))
+        memory_usage_mb = None
+        cpu_percent = None
+    
+    # Get retrieval stats
     stats = retriever_instance.get_stats()
     
+    # Determine overall status
     status = "healthy" if all([qdrant_healthy, embeddings_healthy, reranker_healthy]) else "unhealthy"
     
     return HealthCheck(
         status=status,
         timestamp=datetime.utcnow(),
-        version="0.2.0",
+        version="0.3.0",  # Updated version
         qdrant_healthy=qdrant_healthy,
         embeddings_healthy=embeddings_healthy,
         reranker_healthy=reranker_healthy,
         uptime_seconds=uptime_seconds,
-        total_requests=stats.get("total_queries", 0)
+        total_requests=stats.get("total_queries", 0),
+        memory_usage_mb=memory_usage_mb,
+        cpu_usage_percent=cpu_percent
     )
 
 
@@ -378,8 +536,27 @@ async def generate_rag_answer(
         )
 
 
+# Phase 10 monitoring endpoints
+@app.get("/metrics")
+async def prometheus_metrics():
+    """Prometheus metrics endpoint."""
+    return await metrics_endpoint()
+
+
 @app.get("/stats", response_model=dict)
-async def get_stats(retriever_instance: HybridRetriever = Depends(get_retriever)):
+async def get_comprehensive_stats():
+    """Get comprehensive system and performance statistics."""
+    return await stats_endpoint()
+
+
+@app.get("/health/detailed", response_model=dict)
+async def get_detailed_health():
+    """Get detailed health information including dependencies."""
+    return await health_detailed_endpoint()
+
+
+@app.get("/stats/legacy", response_model=dict)
+async def get_stats_legacy(retriever_instance: HybridRetriever = Depends(get_retriever)):
     """Get retrieval statistics and performance metrics."""
     try:
         stats = retriever_instance.get_stats()

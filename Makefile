@@ -91,9 +91,80 @@ logs: ## Show infrastructure logs
 
 health: ## Check health of all services
 	@echo "Checking infrastructure health..."
-	@curl -s http://localhost:6333/health || echo "Qdrant not responding"
-	@curl -s http://localhost:9200/_cluster/health || echo "Elasticsearch not running (optional)"
+	@curl -s http://localhost:6333/health || echo "❌ Qdrant not responding"
+	@curl -s http://localhost:9200/_cluster/health || echo "⚠️  Elasticsearch not running (optional)"
 	@echo "Checking API health..."
-	@curl -s http://localhost:8000/health || echo "RAG API not responding"
-	@echo "Checking Web..."
-	@curl -s http://localhost:3000 > /dev/null && echo "Web app responding" || echo "Web app not responding"
+	@curl -s http://localhost:8000/health || echo "❌ RAG API not responding"
+	@curl -s http://localhost:3000/api/health > /dev/null && echo "✅ Web app responding" || echo "❌ Web app not responding"
+
+health-detailed: ## Get detailed health information
+	@echo "=== Detailed Health Check ==="
+	@echo "RAG API Health:"
+	@curl -s http://localhost:8000/health | jq . || echo "RAG API not available"
+	@echo "\nRAG API Detailed Health:"
+	@curl -s http://localhost:8000/health/detailed | jq . || echo "Detailed health not available"
+	@echo "\nWeb App Health:"
+	@curl -s http://localhost:3000/api/health | jq . || echo "Web health not available"
+
+stats: ## Get system statistics
+	@echo "=== System Statistics ==="
+	@curl -s http://localhost:8000/stats | jq . || echo "Stats not available"
+
+metrics: ## View Prometheus metrics
+	@echo "=== Prometheus Metrics Sample ==="
+	@curl -s http://localhost:8000/metrics | head -20 || echo "Metrics not available"
+	@echo "\n... (truncated, visit http://localhost:8000/metrics for full metrics)"
+
+# Production deployment commands
+deploy-production: ## Deploy production stack with monitoring
+	@echo "Deploying production stack..."
+	export ENVIRONMENT=production BUILD_TARGET=production && \
+	docker compose --profile production --profile monitoring up -d
+
+deploy-dev: ## Deploy development stack
+	@echo "Deploying development stack..."
+	docker compose --profile api up -d
+
+stop-all: ## Stop all services including monitoring
+	docker compose --profile production --profile monitoring --profile optional down
+
+# Monitoring commands
+monitoring-up: ## Start monitoring stack (Prometheus + Grafana)
+	docker compose --profile monitoring up -d
+
+monitoring-down: ## Stop monitoring stack
+	docker compose --profile monitoring down
+
+logs-api: ## View RAG API logs
+	docker compose logs -f rag-api
+
+logs-all: ## View all service logs
+	docker compose logs -f
+
+# Phase 10 testing
+test-phase10: ## Run Phase 10 integration tests
+	cd services/rag_api && python test_phase10_integration.py
+
+test-deployment: ## Test complete deployment workflow
+	@echo "Testing deployment workflow..."
+	@echo "1. Starting infrastructure..."
+	@make start-infra
+	@sleep 10
+	@echo "2. Starting API..."
+	@make start-api &
+	@sleep 15
+	@echo "3. Running integration tests..."
+	@make test-phase10
+	@echo "Deployment test complete!"
+
+validate-production: ## Validate production readiness
+	@echo "=== Production Readiness Validation ==="
+	@echo "1. Health checks..."
+	@make health-detailed
+	@echo "\n2. Security headers..."
+	@curl -I http://localhost:8000/health | grep -E "(X-Content-Type-Options|X-Frame-Options|X-API-Version)"
+	@echo "\n3. Monitoring endpoints..."
+	@curl -s http://localhost:8000/metrics | head -5
+	@echo "\n4. Performance stats..."
+	@curl -s http://localhost:8000/stats | jq '.performance.uptime_seconds'
+	@echo "\n✅ Production validation complete"

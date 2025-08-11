@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # Vector database for embeddings and documents
   qdrant:
     image: qdrant/qdrant:latest
     container_name: maistorage-qdrant
@@ -13,6 +14,7 @@ services:
     environment:
       - QDRANT__SERVICE__HTTP_PORT=6333
       - QDRANT__SERVICE__GRPC_PORT=6334
+      - QDRANT__LOG_LEVEL=INFO
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
@@ -20,7 +22,10 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - maistorage-network
 
+  # Optional Elasticsearch for BM25 search
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.15.1
     container_name: maistorage-elasticsearch
@@ -28,6 +33,7 @@ services:
       - discovery.type=single-node
       - xpack.security.enabled=false
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - cluster.name=maistorage-es
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -40,8 +46,111 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    networks:
+      - maistorage-network
     profiles:
       - optional  # Only starts when explicitly requested
+
+  # RAG API service
+  rag-api:
+    build:
+      context: ../services/rag_api
+      target: ${BUILD_TARGET:-development}
+    container_name: maistorage-rag-api
+    ports:
+      - "8000:8000"
+    environment:
+      # Load from .env file
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-small}
+      - QDRANT_URL=http://qdrant:6333
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DEBUG=${DEBUG:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      # Rate limiting and security
+      - MAX_REQUEST_SIZE=${MAX_REQUEST_SIZE:-10000000}
+      - RATE_LIMIT_REQUESTS=${RATE_LIMIT_REQUESTS:-100}
+      - RATE_LIMIT_BURST=${RATE_LIMIT_BURST:-20}
+      # Tracing (optional)
+      - ENABLE_TRACING=${ENABLE_TRACING:-false}
+      - LANGFUSE_PUBLIC_KEY=${LANGFUSE_PUBLIC_KEY:-}
+      - LANGFUSE_SECRET_KEY=${LANGFUSE_SECRET_KEY:-}
+    volumes:
+      - ../services/rag_api:/app  # For development mode
+      - rag_api_cache:/app/cache  # Persistent cache
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - maistorage-network
+    profiles:
+      - api  # Optional service
+
+  # Redis for caching and rate limiting (production)
+  redis:
+    image: redis:7-alpine
+    container_name: maistorage-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - maistorage-network
+    profiles:
+      - production  # Only for production deployments
+
+  # Monitoring with Prometheus (production)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: maistorage-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - maistorage-network
+    profiles:
+      - monitoring
+
+  # Grafana for metrics visualization (production)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: maistorage-grafana
+    ports:
+      - "3001:3000"  # Avoid conflict with Next.js
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+    networks:
+      - maistorage-network
+    profiles:
+      - monitoring
 
 volumes:
   qdrant_data:
@@ -50,7 +159,19 @@ volumes:
     driver: local
   elasticsearch_data:
     driver: local
+  rag_api_cache:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
 
 networks:
-  default:
-    name: maistorage-network
+  maistorage-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
