@@ -11,3 +11,19 @@ python-dotenv>=1.0.0
 ruff>=0.9.0
 black>=24.12.0
 isort>=5.13.0
+
+# Phase 2 dependencies - Hybrid Retrieval
+sentence-transformers>=3.0.0
+transformers>=4.36.0
+torch>=2.0.0
+numpy>=1.24.0
+openai>=1.0.0
+
+# Optional GPU support
+# torch-audio  # Uncomment if using audio models
+# faiss-cpu>=1.7.0  # Uncomment for efficient similarity search
+# faiss-gpu>=1.7.0  # Uncomment for GPU-accelerated search
+
+# Development and testing
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
