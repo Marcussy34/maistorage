@@ -1,0 +1,279 @@
+{
+  "dataset_info": {
+    "name": "MAI Storage Golden QA Dataset",
+    "version": "1.0",
+    "description": "Golden question-answer pairs for evaluating baseline RAG performance",
+    "created_date": "2024-12-19",
+    "total_questions": 18,
+    "question_types": {
+      "factual": "Direct factual questions about specific topics",
+      "conceptual": "Questions requiring understanding of concepts and relationships",
+      "comparative": "Questions comparing different concepts or technologies",
+      "definitional": "Questions asking for definitions or explanations",
+      "application": "Questions about practical applications or use cases"
+    }
+  },
+  "questions": [
+    {
+      "id": 1,
+      "question": "What is Python?",
+      "type": "definitional",
+      "difficulty": "easy",
+      "expected_topics": ["Python", "programming language", "high-level", "interpreted"],
+      "expected_answer": "Python is a high-level, interpreted programming language with a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse.",
+      "evaluation_criteria": {
+        "should_include": ["high-level", "interpreted", "readability", "modules"],
+        "should_not_include": ["compile", "low-level"],
+        "min_relevance_score": 0.8
+      }
+    },
+    {
+      "id": 2,
+      "question": "How does machine learning work?",
+      "type": "conceptual",
+      "difficulty": "medium",
+      "expected_topics": ["machine learning", "artificial intelligence", "learning", "data"],
+      "expected_answer": "Machine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.",
+      "evaluation_criteria": {
+        "should_include": ["subset", "artificial intelligence", "learn", "data"],
+        "should_not_include": ["explicitly programmed"],
+        "min_relevance_score": 0.7
+      }
+    },
+    {
+      "id": 3,
+      "question": "What is the definition of artificial intelligence?",
+      "type": "definitional",
+      "difficulty": "easy",
+      "expected_topics": ["artificial intelligence", "AI", "human intelligence", "machines"],
+      "expected_answer": "Artificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.",
+      "evaluation_criteria": {
+        "should_include": ["simulation", "human intelligence", "machines", "learning"],
+        "should_not_include": ["biological", "organic"],
+        "min_relevance_score": 0.8
+      }
+    },
+    {
+      "id": 4,
+      "question": "What does data science involve?",
+      "type": "conceptual",
+      "difficulty": "medium",
+      "expected_topics": ["data science", "scientific methods", "algorithms", "insights"],
+      "expected_answer": "Data science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and apply knowledge and actionable insights from data across a broad range of application domains.",
+      "evaluation_criteria": {
+        "should_include": ["interdisciplinary", "scientific methods", "algorithms", "insights"],
+        "should_not_include": ["single domain", "simple"],
+        "min_relevance_score": 0.7
+      }
+    },
+    {
+      "id": 5,
+      "question": "Why is Python's syntax important?",
+      "type": "conceptual",
+      "difficulty": "medium",
+      "expected_topics": ["Python", "syntax", "readability", "maintenance"],
+      "expected_answer": "Python has a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance.",
+      "evaluation_criteria": {
+        "should_include": ["syntax", "readability", "maintenance", "simple"],
+        "should_not_include": ["complex", "difficult"],
+        "min_relevance_score": 0.8
+      }
+    },
+    {
+      "id": 6,
+      "question": "How is machine learning related to artificial intelligence?",
+      "type": "comparative",
+      "difficulty": "medium",
+      "expected_topics": ["machine learning", "artificial intelligence", "subset", "relationship"],
+      "expected_answer": "Machine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed.",
+      "evaluation_criteria": {
+        "should_include": ["subset", "artificial intelligence", "relationship"],
+        "should_not_include": ["identical", "unrelated"],
+        "min_relevance_score": 0.7
+      }
+    },
+    {
+      "id": 7,
+      "question": "What programming features does Python support?",
+      "type": "factual",
+      "difficulty": "easy",
+      "expected_topics": ["Python", "modules", "packages", "modularity"],
+      "expected_answer": "Python supports modules and packages, which encourages program modularity and code reuse.",
+      "evaluation_criteria": {
+        "should_include": ["modules", "packages", "modularity", "code reuse"],
+        "should_not_include": ["classes only", "functions only"],
+        "min_relevance_score": 0.8
+      }
+    },
+    {
+      "id": 8,
+      "question": "What makes machine learning different from traditional programming?",
+      "type": "comparative",
+      "difficulty": "hard",
+      "expected_topics": ["machine learning", "programming", "automatic learning", "explicit programming"],
+      "expected_answer": "Machine learning provides systems the ability to automatically learn and improve from experience without being explicitly programmed, unlike traditional programming where behavior is explicitly coded.",
+      "evaluation_criteria": {
+        "should_include": ["automatically learn", "without being explicitly programmed"],
+        "should_not_include": ["same as", "identical"],
+        "min_relevance_score": 0.6
+      }
+    },
+    {
+      "id": 9,
+      "question": "What types of data does data science work with?",
+      "type": "factual",
+      "difficulty": "medium",
+      "expected_topics": ["data science", "structured data", "unstructured data"],
+      "expected_answer": "Data science works with both structured and unstructured data to extract knowledge and insights.",
+      "evaluation_criteria": {
+        "should_include": ["structured", "unstructured", "data"],
+        "should_not_include": ["only structured", "only unstructured"],
+        "min_relevance_score": 0.7
+      }
+    },
+    {
+      "id": 10,
+      "question": "What human-like traits can AI systems exhibit?",
+      "type": "factual",
+      "difficulty": "medium",
+      "expected_topics": ["artificial intelligence", "human traits", "learning", "problem-solving"],
+      "expected_answer": "AI systems can exhibit traits associated with a human mind such as learning and problem-solving.",
+      "evaluation_criteria": {
+        "should_include": ["learning", "problem-solving", "human mind"],
+        "should_not_include": ["emotions", "consciousness"],
+        "min_relevance_score": 0.7
+      }
+    },
+    {
+      "id": 11,
+      "question": "How does Python reduce maintenance costs?",
+      "type": "conceptual",
+      "difficulty": "medium",
+      "expected_topics": ["Python", "maintenance", "readability", "syntax"],
+      "expected_answer": "Python reduces maintenance costs through its simple, easy-to-learn syntax that emphasizes readability.",
+      "evaluation_criteria": {
+        "should_include": ["readability", "syntax", "maintenance"],
+        "should_not_include": ["complex", "hard to read"],
+        "min_relevance_score": 0.8
+      }
+    },
+    {
+      "id": 12,
+      "question": "What is the goal of data science?",
+      "type": "conceptual",
+      "difficulty": "medium",
+      "expected_topics": ["data science", "knowledge", "insights", "application"],
+      "expected_answer": "The goal of data science is to extract knowledge and insights from data and apply actionable insights across a broad range of application domains.",
+      "evaluation_criteria": {
+        "should_include": ["extract knowledge", "insights", "actionable"],
+        "should_not_include": ["storage only", "collection only"],
+        "min_relevance_score": 0.7
+      }
+    },
+    {
+      "id": 13,
+      "question": "How do machines simulate human intelligence in AI?",
+      "type": "conceptual",
+      "difficulty": "hard",
+      "expected_topics": ["artificial intelligence", "simulation", "human intelligence", "thinking"],
+      "expected_answer": "Machines simulate human intelligence by being programmed to think like humans and mimic their actions, exhibiting traits associated with human minds such as learning and problem-solving.",
+      "evaluation_criteria": {
+        "should_include": ["programmed", "think like humans", "mimic actions"],
+        "should_not_include": ["naturally intelligent", "conscious"],
+        "min_relevance_score": 0.6
+      }
+    },
+    {
+      "id": 14,
+      "question": "What makes data science interdisciplinary?",
+      "type": "conceptual",
+      "difficulty": "medium",
+      "expected_topics": ["data science", "interdisciplinary", "methods", "domains"],
+      "expected_answer": "Data science is interdisciplinary because it uses scientific methods, processes, algorithms and systems from multiple fields and applies them across a broad range of application domains.",
+      "evaluation_criteria": {
+        "should_include": ["interdisciplinary", "multiple", "broad range"],
+        "should_not_include": ["single field", "narrow"],
+        "min_relevance_score": 0.7
+      }
+    },
+    {
+      "id": 15,
+      "question": "How does machine learning improve over time?",
+      "type": "conceptual",
+      "difficulty": "medium",
+      "expected_topics": ["machine learning", "improve", "experience", "learning"],
+      "expected_answer": "Machine learning systems improve over time by automatically learning from experience without being explicitly programmed for each improvement.",
+      "evaluation_criteria": {
+        "should_include": ["automatically", "experience", "improve"],
+        "should_not_include": ["manual updates", "explicit programming"],
+        "min_relevance_score": 0.7
+      }
+    },
+    {
+      "id": 16,
+      "question": "What is the main advantage of Python's design?",
+      "type": "conceptual",
+      "difficulty": "medium",
+      "expected_topics": ["Python", "design", "readability", "simplicity"],
+      "expected_answer": "The main advantage of Python's design is its emphasis on readability through simple, easy-to-learn syntax, which reduces maintenance costs.",
+      "evaluation_criteria": {
+        "should_include": ["readability", "simple", "easy-to-learn"],
+        "should_not_include": ["complex", "difficult"],
+        "min_relevance_score": 0.8
+      }
+    },
+    {
+      "id": 17,
+      "question": "What topics are covered in this document collection?",
+      "type": "factual",
+      "difficulty": "easy",
+      "expected_topics": ["programming", "AI", "data science", "multiple topics"],
+      "expected_answer": "This document collection covers multiple topics related to programming, artificial intelligence, machine learning, and data science.",
+      "evaluation_criteria": {
+        "should_include": ["programming", "artificial intelligence", "machine learning", "data science"],
+        "should_not_include": ["single topic", "unrelated"],
+        "min_relevance_score": 0.8
+      }
+    },
+    {
+      "id": 18,
+      "question": "How does the document describe testing semantic search?",
+      "type": "application",
+      "difficulty": "medium",
+      "expected_topics": ["semantic search", "testing", "multiple topics"],
+      "expected_answer": "The document mentions that covering multiple topics related to programming, AI, and data science makes it ideal for testing semantic search capabilities.",
+      "evaluation_criteria": {
+        "should_include": ["multiple topics", "testing", "semantic search"],
+        "should_not_include": ["single topic", "not suitable"],
+        "min_relevance_score": 0.7
+      }
+    }
+  ],
+  "evaluation_guidelines": {
+    "scoring_criteria": {
+      "faithfulness": "Answer should be supported by the retrieved context",
+      "completeness": "Answer should address all parts of the question",
+      "relevance": "Answer should stay on topic and be directly relevant",
+      "citation_quality": "Sources should be properly referenced",
+      "clarity": "Answer should be clear and well-structured"
+    },
+    "scoring_scale": {
+      "5": "Excellent - Exceeds expectations",
+      "4": "Good - Meets expectations",
+      "3": "Satisfactory - Acceptable with minor issues",
+      "2": "Poor - Notable issues but partially correct",
+      "1": "Very Poor - Major issues or incorrect"
+    },
+    "pass_threshold": {
+      "overall_score": 4.0,
+      "individual_criteria": 3.0,
+      "citation_coverage": 0.8
+    }
+  },
+  "usage_notes": {
+    "purpose": "Evaluate baseline RAG system performance in Phase 3",
+    "next_phases": "Results will guide improvements in agentic RAG development",
+    "metrics": "Use for RAGAS evaluation and retrieval metrics calculation",
+    "updates": "Expand dataset as new documents are added to the system"
+  }
+}

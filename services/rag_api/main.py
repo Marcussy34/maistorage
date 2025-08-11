@@ -19,6 +19,8 @@ from models import (
     ErrorResponse, ErrorDetail, CollectionInfo
 )
 from retrieval import HybridRetriever
+from rag_baseline import BaselineRAG, RAGRequest, RAGResponse, create_baseline_rag
+from llm_client import LLMConfig
 
 # Configure logging
 logging.basicConfig(
@@ -39,7 +41,8 @@ class Settings(BaseSettings):
     qdrant_url: str = "http://localhost:6333"
     
     class Config:
-        env_file = ".env"
+        env_file = "../../.env"
+        extra = "ignore"  # Ignore extra fields in .env file
 
 
 settings = Settings()
@@ -64,13 +67,14 @@ app.add_middleware(
 
 # Global state
 retriever: Optional[HybridRetriever] = None
+baseline_rag: Optional[BaselineRAG] = None
 app_start_time = time.time()
 
 
 @app.on_event("startup")
 async def startup_event():
     """Initialize services on startup."""
-    global retriever
+    global retriever, baseline_rag
     
     logger.info("Starting MAI Storage RAG API...")
     
@@ -84,6 +88,16 @@ async def startup_event():
         )
         
         logger.info("Hybrid retriever initialized successfully")
+        
+        # Initialize baseline RAG system
+        baseline_rag = create_baseline_rag(
+            retriever=retriever,
+            model=settings.openai_model,
+            temperature=0.7,
+            api_key=settings.openai_api_key
+        )
+        
+        logger.info("Baseline RAG system initialized successfully")
         
     except Exception as e:
         logger.error(f"Failed to initialize services: {e}")
@@ -106,16 +120,37 @@ def get_retriever() -> HybridRetriever:
     return retriever
 
 
+def get_baseline_rag() -> BaselineRAG:
+    """Dependency to get the baseline RAG instance."""
+    if baseline_rag is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Baseline RAG service not initialized"
+        )
+    return baseline_rag
+
+
 @app.get("/", response_model=dict)
 async def read_root():
     """Root endpoint with API information."""
     return {
         "message": "MAI Storage RAG API is running",
         "app_name": settings.app_name,
-        "version": "0.2.0",
+        "version": "0.3.0",
         "model": settings.openai_model,
         "embedding_model": settings.embedding_model,
         "reranker_model": settings.reranker_model,
+        "features": {
+            "hybrid_retrieval": "Dense vector + BM25 + RRF fusion",
+            "reranking": "Cross-encoder reranking with BGE-reranker-v2",
+            "baseline_rag": "Traditional RAG with citations",
+            "endpoints": {
+                "retrieve": "POST /retrieve - Hybrid document retrieval",
+                "rag": "POST /rag - Baseline RAG generation with citations",
+                "health": "GET /health - System health check",
+                "stats": "GET /stats - Performance metrics"
+            }
+        },
         "docs_url": "/docs",
         "health_url": "/health"
     }
@@ -253,6 +288,64 @@ async def get_collection_info(
         raise HTTPException(
             status_code=500,
             detail="Failed to retrieve collection information"
+        )
+
+
+@app.post("/rag", response_model=RAGResponse)
+async def generate_rag_answer(
+    request: RAGRequest,
+    rag_instance: BaselineRAG = Depends(get_baseline_rag)
+):
+    """
+    Generate answer using baseline RAG approach.
+    
+    This endpoint implements the Phase 3 baseline RAG functionality:
+    - Query → retrieve top-k chunks using hybrid search
+    - Pack context → LLM generate answer using gpt-4o-mini
+    - Return answer with chunk-level citations
+    
+    Args:
+        request: RAG request with query and parameters
+        
+    Returns:
+        RAG response with generated answer and source citations
+        
+    Raises:
+        HTTPException: If RAG generation fails
+    """
+    try:
+        logger.info(f"RAG request: query_length={len(request.query)}, top_k={request.top_k}")
+        
+        # Generate RAG response
+        response = await rag_instance.generate(request)
+        
+        logger.info(f"RAG completed: {len(response.citations)} citations, {response.total_time_ms:.2f}ms total")
+        return response
+        
+    except ValueError as e:
+        # Client error (bad request)
+        logger.warning(f"Invalid RAG request: {e}")
+        raise HTTPException(
+            status_code=400,
+            detail=ErrorResponse(
+                error=ErrorDetail(
+                    code="INVALID_REQUEST",
+                    message=str(e)
+                )
+            ).dict()
+        )
+    
+    except Exception as e:
+        # Server error
+        logger.error(f"RAG generation failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=ErrorResponse(
+                error=ErrorDetail(
+                    code="RAG_GENERATION_FAILED",
+                    message="Internal server error during RAG generation"
+                )
+            ).dict()
         )
 
 
