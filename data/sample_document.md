@@ -1,4 +1,4 @@
-# Sample Document for Phase 2 Testing
+# Sample Document
 
 ## Introduction
 This is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.

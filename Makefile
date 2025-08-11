@@ -75,6 +75,43 @@ test: ## Run all tests
 	@echo "Running JavaScript tests..."
 	cd apps/web && npm test || echo "No tests configured yet"
 
+# Phase 11 comprehensive test suite
+test-unit: ## Run unit tests only
+	@echo "Running unit tests..."
+	cd services/rag_api && python -m pytest tests/unit/ -v --tb=short
+
+test-integration: ## Run integration tests only
+	@echo "Running integration tests..."
+	cd services/rag_api && python -m pytest tests/integration/ -v --tb=short
+
+test-edge-cases: ## Run edge case tests only
+	@echo "Running edge case tests..."
+	cd services/rag_api && python -m pytest tests/edge_cases/ -v --tb=short
+
+test-performance: ## Run performance tests only
+	@echo "Running performance tests..."
+	cd services/rag_api && python -m pytest tests/performance/ -v --tb=short -m "not slow"
+
+test-comprehensive: ## Run complete Phase 11 test suite
+	@echo "Running comprehensive Phase 11 test suite..."
+	cd services/rag_api && python tests/run_tests.py --test-type all --verbose
+
+test-coverage: ## Run tests with coverage reporting
+	@echo "Running tests with coverage..."
+	cd services/rag_api && python -m pytest tests/ --cov=./ --cov-report=html --cov-report=term-missing --cov-fail-under=70
+
+test-report: ## Generate HTML test report
+	@echo "Generating test report..."
+	cd services/rag_api && python tests/run_tests.py --report test_report.html
+
+test-fast: ## Run fast tests only (excludes slow performance tests)
+	@echo "Running fast tests..."
+	cd services/rag_api && python -m pytest tests/ -v --tb=short -m "not slow"
+
+test-slow: ## Run slow tests only
+	@echo "Running slow tests..."
+	cd services/rag_api && python -m pytest tests/ -v --tb=short -m "slow"
+
 ingest: ## Run document ingestion (example)
 	cd services/indexer && python ingest.py --path ./data
 
