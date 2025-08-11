@@ -7,7 +7,7 @@ import { CompactModeToggle, ModeStatus } from '../src/components/ModeToggle'
 import { Trash2, Moon, Sun, MessageSquare } from 'lucide-react'
 
 /**
- * Main chat page for the MAI Storage RAG system
+ * Main chat page for the MaiStorage RAG system
  * Provides a streaming chat interface with dark mode support
  */
 export default function ChatPage() {

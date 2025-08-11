@@ -73,7 +73,7 @@ export function ChatStream({ messages, onRetry, isLoading, ragMode = false }) {
     <div className="flex-1 overflow-y-auto p-4 space-y-4">
       {messages.length === 0 && !isLoading && (
         <div className="text-center text-muted-foreground py-12">
-          <div className="text-lg font-medium mb-2">Welcome to MAI Storage RAG</div>
+          <div className="text-lg font-medium mb-2">Welcome to MaiStorage RAG</div>
           <div>Ask questions about your documents to get started.</div>
         </div>
       )}
