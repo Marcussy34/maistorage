@@ -211,7 +211,7 @@ export default function ChatPage() {
         {/* Footer */}
         <footer className="px-4 py-2 text-center text-xs text-muted-foreground border-t">
           <p>
-            MaiStorage Phase 7 - Interactive Citations & Agent Trace
+            MaiStorage 
             {' • '}
             <span className="font-medium">
               {messages.filter(m => m.type === 'user').length} messages sent

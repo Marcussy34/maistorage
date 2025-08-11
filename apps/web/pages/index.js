@@ -13,7 +13,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       
-      <div className="min-h-screen bg-background text-foreground">
+      <div className="h-screen bg-background text-foreground overflow-hidden flex flex-col">
         {/* Header */}
         <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container mx-auto px-4 py-4">
@@ -30,26 +30,26 @@ export default function Home() {
         </header>
 
         {/* Hero Section */}
-        <main className="container mx-auto px-4 py-24 md:py-24">
-          <div className="text-center mb-12">
-            <div className="flex justify-center mb-6">
+        <main className="container mx-auto px-4 py-8 flex-1 flex flex-col justify-center">
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
               <div className="p-3 bg-primary/10 rounded-full">
                 <Database className="h-12 w-12 text-primary" />
               </div>
             </div>
             
-            <h1 className="text-4xl font-bold tracking-tight mb-4">
+            <h1 className="text-4xl font-bold tracking-tight mb-3">
               MaiStorage - Question 1 Agentic RAG
             </h1>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground mb-4 max-w-2xl mx-auto">
               Advanced Agentic RAG System
             </p>
-            <p className="text-lg text-muted-foreground mb-12 max-w-3xl mx-auto">
+            <p className="text-lg text-muted-foreground mb-8 max-w-3xl mx-auto">
               Experience intelligent document search with streaming responses, 
               hybrid retrieval, and citation support powered by Next.js and FastAPI.
             </p>
 
-            <div className="flex gap-4 justify-center mb-16">
+            <div className="flex gap-4 justify-center mb-8">
               <Link href="/chat">
                 <Button size="lg" className="gap-2">
                   <MessageSquare className="h-5 w-5" />
