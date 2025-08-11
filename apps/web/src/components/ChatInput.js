@@ -9,12 +9,21 @@ import { Send } from 'lucide-react'
  */
 export function ChatInput({ onSendMessage, isLoading, disabled = false }) {
   const [message, setMessage] = useState('')
+  const [lastSentMessage, setLastSentMessage] = useState('')
+  const [lastSentTime, setLastSentTime] = useState(0)
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (message.trim() && !isLoading) {
-      onSendMessage(message.trim())
+    const trimmedMessage = message.trim()
+    const now = Date.now()
+    
+    // Prevent duplicate sends within 1 second of the same message
+    if (trimmedMessage && !isLoading && 
+        (trimmedMessage !== lastSentMessage || now - lastSentTime > 1000)) {
+      onSendMessage(trimmedMessage)
       setMessage('')
+      setLastSentMessage(trimmedMessage)
+      setLastSentTime(now)
     }
   }
 
