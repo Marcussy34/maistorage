@@ -18,7 +18,10 @@ import {
   FileIcon,
   Trash2,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  FolderOpen,
+  Clock,
+  HardDriveIcon
 } from "lucide-react";
 
 /**
@@ -33,6 +36,11 @@ export default function UploadPage() {
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [uploadResults, setUploadResults] = useState(null);
+  const [existingDocuments, setExistingDocuments] = useState([]);
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
+  const [deletingDocument, setDeletingDocument] = useState(null);
+  const [resettingCollection, setResettingCollection] = useState(false);
+  const [showDocumentManager, setShowDocumentManager] = useState(false);
   const fileInputRef = useRef(null);
   const mountedRef = useRef(false);
 
@@ -161,6 +169,110 @@ export default function UploadPage() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // Load existing documents from the collection
+  const loadExistingDocuments = async () => {
+    setLoadingDocuments(true);
+    try {
+      const response = await fetch('/api/documents/delete', {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to load documents: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      setExistingDocuments(result.documents || []);
+    } catch (error) {
+      console.error('Failed to load existing documents:', error);
+      alert('Failed to load existing documents: ' + error.message);
+    } finally {
+      setLoadingDocuments(false);
+    }
+  };
+
+  // Delete a specific document
+  const deleteDocument = async (docName) => {
+    if (!confirm(`Are you sure you want to delete "${docName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingDocument(docName);
+    try {
+      const response = await fetch('/api/documents/delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'delete_document',
+          document_name: docName
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete document: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Remove the document from the list
+        setExistingDocuments(prev => prev.filter(doc => doc.doc_name !== docName));
+        alert(result.message);
+      } else {
+        throw new Error(result.message || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('Failed to delete document:', error);
+      alert('Failed to delete document: ' + error.message);
+    } finally {
+      setDeletingDocument(null);
+    }
+  };
+
+  // Reset the entire collection
+  const resetCollection = async () => {
+    if (!confirm('Are you sure you want to delete ALL documents? This will permanently remove all data from your knowledge base and cannot be undone.')) {
+      return;
+    }
+
+    if (!confirm('This is your final warning. All documents will be permanently deleted. Are you absolutely sure?')) {
+      return;
+    }
+
+    setResettingCollection(true);
+    try {
+      const response = await fetch('/api/documents/delete', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'reset_collection'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to reset collection: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setExistingDocuments([]);
+        alert(result.message);
+      } else {
+        throw new Error(result.message || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('Failed to reset collection:', error);
+      alert('Failed to reset collection: ' + error.message);
+    } finally {
+      setResettingCollection(false);
+    }
+  };
+
   // Upload files
   const uploadFiles = async () => {
     if (files.length === 0) return;
@@ -202,6 +314,11 @@ export default function UploadPage() {
         }
         return { ...fileObj, status: 'error', error: 'Upload result not found' };
       }));
+
+      // Refresh existing documents if the manager is open
+      if (showDocumentManager) {
+        await loadExistingDocuments();
+      }
 
     } catch (error) {
       console.error('Upload failed:', error);
@@ -564,6 +681,165 @@ export default function UploadPage() {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Document Management Section */}
+            <motion.div
+              className="mt-12"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+            >
+              <div className="rounded-lg border bg-card p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
+                      <HardDriveIcon className="h-5 w-5" />
+                      Document Management
+                    </h3>
+                    <p className="text-muted-foreground">
+                      View and manage documents in your knowledge base
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setShowDocumentManager(!showDocumentManager);
+                        if (!showDocumentManager) {
+                          loadExistingDocuments();
+                        }
+                      }}
+                      disabled={loadingDocuments}
+                    >
+                      {loadingDocuments ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <FolderOpen className="h-4 w-4 mr-2" />
+                      )}
+                      {showDocumentManager ? 'Hide Documents' : 'View Documents'}
+                    </Button>
+                  </div>
+                </div>
+
+                <AnimatePresence>
+                  {showDocumentManager && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {/* Document List Header */}
+                      <div className="flex items-center justify-between mb-4 pb-2 border-b">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium">
+                            Stored Documents ({existingDocuments.length})
+                          </h4>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={loadExistingDocuments}
+                            disabled={loadingDocuments}
+                          >
+                            <RefreshCw className={`h-4 w-4 ${loadingDocuments ? 'animate-spin' : ''}`} />
+                          </Button>
+                        </div>
+                        
+                        {existingDocuments.length > 0 && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={resetCollection}
+                            disabled={resettingCollection || loadingDocuments}
+                          >
+                            {resettingCollection ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Resetting...
+                              </>
+                            ) : (
+                              <>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Reset All
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </div>
+
+                      {/* Document List */}
+                      {loadingDocuments ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                          <span className="ml-2 text-muted-foreground">Loading documents...</span>
+                        </div>
+                      ) : existingDocuments.length === 0 ? (
+                        <div className="text-center py-8">
+                          <Database className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                          <p className="text-muted-foreground">No documents found in the knowledge base</p>
+                          <p className="text-sm text-muted-foreground mt-1">Upload some documents to get started</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {existingDocuments.map((doc) => (
+                            <motion.div
+                              key={doc.doc_name}
+                              className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <div className="flex items-center gap-3 flex-1 min-w-0">
+                                {getFileIcon(doc.doc_name)}
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium truncate">{doc.doc_name}</p>
+                                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                    {doc.doc_type && (
+                                      <span>{doc.doc_type.toUpperCase()}</span>
+                                    )}
+                                    {doc.total_chunks && (
+                                      <span>{doc.total_chunks} chunks</span>
+                                    )}
+                                    {doc.timestamp && (
+                                      <span className="flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        {new Date(doc.timestamp).toLocaleDateString()}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => deleteDocument(doc.doc_name)}
+                                  disabled={deletingDocument === doc.doc_name || loadingDocuments}
+                                >
+                                  {deletingDocument === doc.doc_name ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                      Deleting...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Delete
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
 
             {/* Info Cards */}
             <motion.div 
