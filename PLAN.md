@@ -167,27 +167,27 @@ Establish a one-pass RAG baseline and a gold QA set.
 
 ---
 
-## Phase 4 — Next.js Frontend (Streaming Shell)
+## Phase 4 — Next.js Frontend (Streaming Shell, Pages Router, JS)
 
 **Objective**  
 A usable chat UI with streaming tokens and API proxy.
 
-**Deliverables**
-- `/apps/web/app/chat/page.tsx` (messages + input).
-- `/apps/web/app/api/chat/stream/route.ts` (proxy to FastAPI).
-- `ChatInput`, `ChatStream` components (NDJSON parsing).
+**Deliverables**  
+- `/apps/web/pages/chat.js` (messages + input)  
+- `/apps/web/pages/api/chat/stream.js` (proxy to FastAPI)  
+- `components/ChatInput.js`, `components/ChatStream.js` (NDJSON parsing)  
 
-**Tasks**
-- Tailwind + shadcn/ui setup; dark mode.
-- Implement NDJSON client parser (`fetch` + ReadableStream).
-- Wire environment for API URL via route handler proxy.
+**Tasks**  
+- Tailwind + shadcn/ui setup; dark mode  
+- Implement NDJSON client parser (fetch + ReadableStream)  
+- Wire environment for API URL via API route proxy  
 
-**Acceptance (Exit)**
-- User can send a message; assistant streams tokens from API.
-- Basic error handling; resend works.
+**Acceptance (Exit)**  
+- User can send a message; assistant streams tokens from API  
+- Basic error handling; resend works  
 
-**Inputs/Dependencies**: Phase 3 API responses or mock stream.  
-**Est. Duration**: 1 day.
+**Inputs/Dependencies**: Phase 3 API responses or mock stream  
+**Est. Duration**: 1 day  
 
 ---
 
