@@ -1,0 +1,166 @@
+# Phase 9: Performance & Cost Tuning Configuration
+# Optimized parameters for retrieval pipeline performance and accuracy
+
+# HNSW Configuration (Qdrant Vector Index)
+hnsw:
+  # Construction parameters (affects index build time vs quality)
+  ef_construct: 400  # Increased from 256 for better graph connectivity (higher accuracy)
+  m: 24             # Increased from 16 for better recall (more connections per node)
+  
+  # Search parameters (affects query time vs accuracy)
+  ef_search: 128    # Increased from 64 for better recall at query time
+  
+  # Advanced HNSW parameters
+  max_m: 24         # Maximum connections per node
+  ml: 1.0          # Level generation parameter
+  
+# Retrieval Pipeline Configuration
+retrieval:
+  # Dense vector search parameters
+  dense:
+    default_top_k: 100      # Increased candidate pool for better fusion
+    max_top_k: 200         # Maximum candidates to consider
+    score_threshold: 0.7   # Minimum similarity threshold
+    
+  # BM25 lexical search parameters  
+  bm25:
+    default_top_k: 100     # Match dense search candidate pool
+    k1: 1.2               # Term frequency saturation parameter
+    b: 0.75               # Document length normalization
+    
+  # Hybrid fusion parameters (RRF - Reciprocal Rank Fusion)
+  fusion:
+    rrf_k: 60             # RRF parameter (higher = less aggressive rank combination)
+    dense_weight: 0.6     # Slightly favor semantic similarity
+    bm25_weight: 0.4      # Complement with lexical matching
+    fusion_top_k: 50      # Top candidates after fusion for reranking
+    
+# Reranking Configuration
+reranking:
+  # Cross-encoder reranking parameters
+  enabled: true
+  model: "BAAI/bge-reranker-v2-m3"
+  batch_size: 16          # Optimized batch size for reranker
+  max_candidates: 50      # Candidates to rerank (from fusion)
+  final_top_k: 20         # Final results after reranking
+  score_threshold: 0.5    # Minimum rerank score threshold
+  
+  # Performance optimization
+  cache_embeddings: true  # Cache query embeddings for reranking
+  parallel_inference: true # Enable parallel batch processing
+  
+# MMR (Maximal Marginal Relevance) Configuration
+mmr:
+  enabled: true
+  lambda: 0.6            # Slightly favor relevance over diversity
+  similarity_threshold: 0.85  # Threshold for considering documents similar
+  max_iterations: 100    # Maximum MMR selection iterations
+  
+# Caching Configuration
+caching:
+  # Query embedding cache
+  embedding_cache:
+    enabled: true
+  query_embeddings:
+    enabled: true
+    max_size: 10000      # Maximum cached queries
+    ttl_seconds: 3600    # 1 hour TTL
+    
+  # Candidate ID cache (for popular queries)
+  candidate_ids:
+    enabled: true
+    max_size: 5000       # Maximum cached candidate sets
+    ttl_seconds: 1800    # 30 minutes TTL
+    
+  # Rerank features cache
+  rerank_features:
+    enabled: true
+    max_size: 1000       # Maximum cached rerank computations
+    ttl_seconds: 7200    # 2 hours TTL
+    
+  # Prompt template cache
+  prompt_cache:
+    enabled: true
+    max_size: 500        # Maximum cached prompt templates
+    ttl_seconds: 86400   # 24 hours TTL
+    
+  # BM25 index cache
+  bm25_index:
+    enabled: true
+    persist: true        # Persist to disk
+    rebuild_threshold: 1000  # Rebuild after N new documents
+    
+# Context Processing Configuration
+context_processing:
+  # Context condenser parameters
+  condenser:
+    enabled: true
+    max_context_length: 4000    # Maximum context tokens
+    sentence_selection_method: "relevance_score"  # "relevance_score" | "semantic_clustering" | "hybrid"
+    relevance_threshold: 0.7    # Minimum relevance for sentence inclusion
+    max_sentences: 15           # Maximum sentences in condensed context
+    overlap_reduction: true     # Remove redundant sentences
+    
+  # Sentence scoring parameters
+  sentence_scoring:
+    query_similarity_weight: 0.6  # Weight for query-sentence similarity
+    document_relevance_weight: 0.3  # Weight for document-level relevance
+    position_weight: 0.1          # Weight for sentence position in document
+    
+# Performance Targets
+performance_targets:
+  # Latency targets (milliseconds)
+  latency:
+    p50_target: 800      # 50th percentile target
+    p95_target: 1500     # 95th percentile target
+    p99_target: 2500     # 99th percentile target
+    timeout: 5000        # Request timeout
+    
+  # Quality targets (from Phase 8 evaluation)
+  quality:
+    min_faithfulness: 0.8      # Minimum RAGAS faithfulness score
+    min_answer_relevancy: 0.75  # Minimum RAGAS answer relevancy
+    min_context_precision: 0.7  # Minimum RAGAS context precision
+    min_context_recall: 0.7     # Minimum RAGAS context recall
+    min_retrieval_recall_at_5: 0.6  # Minimum retrieval recall@5
+    
+  # Cost targets
+  cost:
+    max_embedding_calls_per_query: 1  # Minimize API calls through caching
+    max_tokens_per_query: 8000        # Context + response token limit
+    
+# Monitoring and Logging
+monitoring:
+  # Performance metrics to track
+  metrics:
+    - query_latency_ms
+    - embedding_latency_ms
+    - dense_search_latency_ms
+    - bm25_search_latency_ms
+    - rerank_latency_ms
+    - mmr_latency_ms
+    - total_pipeline_latency_ms
+    - cache_hit_rate
+    - quality_scores
+    
+  # Alerting thresholds
+  alerts:
+    high_latency_threshold: 2000  # Alert if latency > 2s
+    low_cache_hit_rate: 0.6       # Alert if cache hit rate < 60%
+    low_quality_threshold: 0.6    # Alert if quality drops below 60%
+    
+# Optimization Strategies
+optimization:
+  # Adaptive parameter tuning
+  adaptive_tuning:
+    enabled: true
+    evaluation_interval_hours: 24  # Re-evaluate parameters daily
+    min_quality_threshold: 0.7     # Minimum quality to maintain
+    performance_weight: 0.4        # Weight for performance vs quality trade-off
+    quality_weight: 0.6           # Weight for quality vs performance trade-off
+    
+  # A/B testing configuration
+  ab_testing:
+    enabled: false    # Disable for production stability
+    test_percentage: 10  # Percentage of traffic for testing
+    evaluation_period_hours: 168  # 1 week evaluation period

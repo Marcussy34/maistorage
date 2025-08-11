@@ -1,17 +1,22 @@
 """
-Hybrid retrieval system for MAI Storage RAG API.
+Phase 9 Optimized Hybrid Retrieval System for MAI Storage RAG API.
 
 This module implements the core retrieval logic combining:
-- Dense vector search (semantic similarity)
-- BM25 lexical search (keyword matching)
+- Dense vector search (semantic similarity) with caching
+- BM25 lexical search (keyword matching) with persistent indices
 - Reciprocal Rank Fusion (RRF) for result combination
-- Cross-encoder reranking for relevance improvement
+- Cross-encoder reranking with feature caching
 - Maximal Marginal Relevance (MMR) for diversity
+- Context condensation for optimized token usage
+- Multi-layer caching for performance optimization
 """
 
 import asyncio
 import logging
 import os
+import yaml
+import time
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 import numpy as np
 from datetime import datetime
@@ -33,6 +38,8 @@ from tools import (
     normalize_scores, combine_scores, deduplicate_results,
     validate_query, create_debug_info
 )
+from cache import CacheManager, get_cache_manager
+from context_condenser import ContextCondenser
 
 logger = logging.getLogger(__name__)
 
@@ -53,21 +60,35 @@ class HybridRetriever:
                  qdrant_url: str = "http://localhost:6333",
                  embedding_model: str = "text-embedding-3-small",
                  reranker_model: str = "BAAI/bge-reranker-v2-m3",
-                 openai_api_key: Optional[str] = None):
+                 openai_api_key: Optional[str] = None,
+                 config_path: Optional[str] = None):
         """
-        Initialize the hybrid retriever.
+        Initialize the optimized hybrid retriever with caching and performance tuning.
         
         Args:
             qdrant_url: Qdrant server URL
             embedding_model: OpenAI embedding model name
             reranker_model: Sentence-transformers reranker model
             openai_api_key: OpenAI API key
+            config_path: Path to retrieval_tuning.yaml configuration file
         """
         self.qdrant_url = qdrant_url
         self.embedding_model = embedding_model
         self.reranker_model_name = reranker_model
         
-        # Initialize clients
+        # Load configuration
+        self.config = self._load_config(config_path)
+        
+        # Initialize cache manager
+        self.cache_manager = get_cache_manager()
+        
+        # Initialize context condenser
+        self.context_condenser = ContextCondenser(
+            openai_api_key=openai_api_key or os.getenv("OPENAI_API_KEY"),
+            config=self.config
+        )
+        
+        # Initialize clients with optimized parameters
         self.qdrant_client = QdrantClient(url=qdrant_url)
         
         # Set up OpenAI client
@@ -78,19 +99,67 @@ class HybridRetriever:
         # Initialize reranker (lazy loading)
         self._reranker_model = None
         
-        # BM25 document cache (indexed by collection)
+        # Legacy BM25 document cache (will be replaced by persistent cache)
         self._bm25_cache: Dict[str, Dict[str, Any]] = {}
         
-        # Performance tracking
+        # Performance tracking with enhanced metrics
         self.stats = {
             "total_queries": 0,
             "dense_queries": 0,
             "bm25_queries": 0,
             "hybrid_queries": 0,
-            "total_time_ms": 0.0
+            "total_time_ms": 0.0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "embedding_api_calls": 0,
+            "rerank_operations": 0,
+            "context_condensations": 0
         }
         
-        logger.info(f"HybridRetriever initialized with Qdrant at {qdrant_url}")
+        # Apply HNSW optimizations if configured
+        self._apply_hnsw_optimizations()
+        
+        logger.info(f"Phase 9 Optimized HybridRetriever initialized with Qdrant at {qdrant_url}")
+        logger.info(f"Configuration loaded: {bool(self.config)}")
+        logger.info(f"Cache manager enabled: {self.cache_manager is not None}")
+        logger.info(f"Context condenser enabled: {bool(self.context_condenser)}")
+    
+    def _load_config(self, config_path: Optional[str]) -> Dict[str, Any]:
+        """Load configuration from YAML file."""
+        if config_path is None:
+            config_path = "retrieval_tuning.yaml"
+        
+        config_file = Path(config_path)
+        if not config_file.exists():
+            logger.warning(f"Config file {config_path} not found, using defaults")
+            return {}
+        
+        try:
+            with open(config_file, 'r') as f:
+                config = yaml.safe_load(f)
+            logger.info(f"Loaded configuration from {config_path}")
+            return config
+        except Exception as e:
+            logger.error(f"Failed to load config from {config_path}: {e}")
+            return {}
+    
+    def _apply_hnsw_optimizations(self) -> None:
+        """Apply HNSW parameter optimizations to Qdrant collections."""
+        hnsw_config = self.config.get("hnsw", {})
+        if not hnsw_config:
+            logger.info("No HNSW configuration found, using defaults")
+            return
+        
+        # Log the HNSW parameters that will be used
+        ef_construct = hnsw_config.get("ef_construct", 256)
+        m = hnsw_config.get("m", 16)
+        ef_search = hnsw_config.get("ef_search", 64)
+        
+        logger.info(f"HNSW parameters - ef_construct: {ef_construct}, m: {m}, ef_search: {ef_search}")
+        
+        # Note: These parameters are applied during collection creation in the indexer
+        # Here we just store them for use when querying
+        self.hnsw_ef_search = ef_search
     
     @property
     def reranker_model(self) -> CrossEncoder:
@@ -123,14 +192,34 @@ class HybridRetriever:
             return None
     
     async def embed_query(self, query: str) -> np.ndarray:
-        """Generate embedding for a query using OpenAI."""
+        """Generate embedding for a query using OpenAI with caching."""
         try:
+            # Check cache first
+            if self.cache_manager and self.cache_manager.embedding_cache:
+                cached_embedding = await self.cache_manager.embedding_cache.get_embedding(
+                    query, self.embedding_model
+                )
+                if cached_embedding is not None:
+                    self.stats["cache_hits"] += 1
+                    logger.debug(f"Query embedding retrieved from cache")
+                    return cached_embedding
+                else:
+                    self.stats["cache_misses"] += 1
+            
+            # Generate new embedding
             with Timer("query_embedding") as timer:
                 response = self.openai_client.embeddings.create(
                     input=query,
                     model=self.embedding_model
                 )
                 embedding = np.array(response.data[0].embedding)
+                self.stats["embedding_api_calls"] += 1
+            
+            # Cache the embedding
+            if self.cache_manager and self.cache_manager.embedding_cache:
+                await self.cache_manager.embedding_cache.set_embedding(
+                    query, self.embedding_model, embedding
+                )
             
             logger.debug(f"Query embedding generated in {timer.elapsed_ms:.2f}ms")
             return embedding
@@ -176,14 +265,19 @@ class HybridRetriever:
                     if conditions:
                         qdrant_filter = qdrant_models.Filter(must=conditions)
                 
-                # Perform search
+                # Perform search with optimized HNSW parameters
+                search_params = qdrant_models.SearchParams(
+                    hnsw_ef=getattr(self, 'hnsw_ef_search', 64)  # Use optimized ef_search
+                )
+                
                 search_results = self.qdrant_client.search(
                     collection_name=collection_name,
                     query_vector=query_embedding.tolist(),
                     query_filter=qdrant_filter,
                     limit=top_k,
                     with_payload=True,
-                    with_vectors=False  # We don't need vectors in results
+                    with_vectors=False,  # We don't need vectors in results
+                    search_params=search_params
                 )
             
             # Convert to our format
@@ -723,11 +817,39 @@ class HybridRetriever:
         self._bm25_cache.clear()
         logger.info("BM25 cache cleared")
     
-    def get_stats(self) -> Dict[str, Any]:
-        """Get retrieval statistics."""
+    async def get_stats(self) -> Dict[str, Any]:
+        """Get comprehensive retrieval and caching statistics."""
         stats = self.stats.copy()
+        
+        # Calculate averages
         if stats["total_queries"] > 0:
             stats["avg_time_ms"] = stats["total_time_ms"] / stats["total_queries"]
         else:
             stats["avg_time_ms"] = 0.0
+        
+        # Calculate cache hit rate
+        total_cache_requests = stats["cache_hits"] + stats["cache_misses"]
+        if total_cache_requests > 0:
+            stats["cache_hit_rate"] = stats["cache_hits"] / total_cache_requests
+        else:
+            stats["cache_hit_rate"] = 0.0
+        
+        # Add cache manager statistics
+        if self.cache_manager:
+            cache_stats = await self.cache_manager.get_all_stats()
+            stats["cache_details"] = cache_stats
+            
+            # Overall hit rate from cache manager
+            overall_hit_rate = await self.cache_manager.get_overall_hit_rate()
+            stats["overall_cache_hit_rate"] = overall_hit_rate
+        
+        # Add configuration info
+        stats["configuration"] = {
+            "config_loaded": bool(self.config),
+            "embedding_model": self.embedding_model,
+            "reranker_model": self.reranker_model_name,
+            "hnsw_ef_search": getattr(self, 'hnsw_ef_search', 64),
+            "context_condenser_enabled": bool(self.context_condenser)
+        }
+        
         return stats

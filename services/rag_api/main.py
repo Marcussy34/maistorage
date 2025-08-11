@@ -682,6 +682,562 @@ async def chat_stream(
         )
 
 
+# ============================================================================
+# Phase 8: Evaluation Endpoints
+# ============================================================================
+
+@app.post("/eval/run")
+async def run_evaluation(
+    mode: str = "traditional",  # "traditional", "agentic", or "both" 
+    top_k: int = 5,
+    save_results: bool = True
+):
+    """
+    Run evaluation on Traditional or Agentic RAG using golden QA dataset.
+    
+    This endpoint implements Phase 8 evaluation harness with RAGAS metrics
+    and retrieval-specific metrics (Recall@k, nDCG, MRR).
+    
+    Args:
+        mode: Evaluation mode - "traditional", "agentic", or "both"
+        top_k: Number of documents to retrieve for evaluation
+        save_results: Whether to save results to disk
+        
+    Returns:
+        Evaluation results with RAGAS metrics and performance data
+    """
+    try:
+        from eval.run_ragas import RAGEvaluator
+        import json
+        from pathlib import Path
+        
+        logger.info(f"Starting evaluation - mode={mode}, top_k={top_k}")
+        
+        # Load golden QA dataset
+        golden_qa_path = Path(__file__).parent / "golden_qa.json"
+        with open(golden_qa_path, 'r') as f:
+            golden_qa_data = json.load(f)
+        
+        questions = golden_qa_data["questions"]
+        
+        # Initialize RAG systems
+        retriever_instance = get_retriever()
+        baseline_rag_instance = get_baseline_rag()
+        agentic_rag_instance = get_agentic_rag()
+        
+        evaluator = RAGEvaluator(
+            baseline_rag=baseline_rag_instance,
+            agentic_rag=agentic_rag_instance,
+            retriever=retriever_instance
+        )
+        
+        results = {}
+        
+        # Run Traditional RAG evaluation
+        if mode in ["traditional", "both"]:
+            logger.info("Running Traditional RAG evaluation...")
+            traditional_results = await evaluator.evaluate_traditional_rag(questions, top_k)
+            traditional_results = await evaluator.run_ragas_evaluation(traditional_results)
+            traditional_retrieval_metrics = evaluator.calculate_retrieval_metrics(
+                traditional_results, questions, top_k
+            )
+            
+            results["traditional"] = {
+                "results": [result.__dict__ for result in traditional_results],
+                "retrieval_metrics": traditional_retrieval_metrics,
+                "ragas_summary": evaluator._calculate_ragas_summary(traditional_results),
+                "performance_summary": evaluator._calculate_performance_summary(traditional_results)
+            }
+            
+            if save_results:
+                output_dir = Path(__file__).parent / "eval" / "results"
+                output_dir.mkdir(parents=True, exist_ok=True)
+                evaluator.save_results(traditional_results, traditional_retrieval_metrics, output_dir)
+        
+        # Run Agentic RAG evaluation  
+        if mode in ["agentic", "both"]:
+            logger.info("Running Agentic RAG evaluation...")
+            agentic_results = await evaluator.evaluate_agentic_rag(questions, top_k)
+            agentic_results = await evaluator.run_ragas_evaluation(agentic_results)
+            agentic_retrieval_metrics = evaluator.calculate_retrieval_metrics(
+                agentic_results, questions, top_k
+            )
+            
+            results["agentic"] = {
+                "results": [result.__dict__ for result in agentic_results],
+                "retrieval_metrics": agentic_retrieval_metrics,
+                "ragas_summary": evaluator._calculate_ragas_summary(agentic_results),
+                "performance_summary": evaluator._calculate_performance_summary(agentic_results)
+            }
+            
+            if save_results:
+                output_dir = Path(__file__).parent / "eval" / "results"
+                output_dir.mkdir(parents=True, exist_ok=True)
+                evaluator.save_results(agentic_results, agentic_retrieval_metrics, output_dir)
+        
+        # Add metadata
+        results["metadata"] = {
+            "evaluation_timestamp": datetime.utcnow().isoformat(),
+            "mode": mode,
+            "top_k": top_k,
+            "total_questions": len(questions),
+            "golden_qa_version": golden_qa_data.get("dataset_info", {}).get("version", "unknown")
+        }
+        
+        logger.info(f"Evaluation completed successfully - mode={mode}")
+        return results
+        
+    except Exception as e:
+        logger.error(f"Evaluation failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=ErrorResponse(
+                error=ErrorDetail(
+                    code="EVALUATION_FAILED", 
+                    message=f"Evaluation failed: {str(e)}"
+                )
+            ).dict()
+        )
+
+
+@app.get("/eval/results")
+async def get_evaluation_results(limit: int = 10):
+    """
+    Get recent evaluation results from saved files.
+    
+    Returns the most recent evaluation results for display in the frontend.
+    
+    Args:
+        limit: Maximum number of result files to return
+        
+    Returns:
+        List of recent evaluation results with metadata
+    """
+    try:
+        import json
+        from pathlib import Path
+        import glob
+        
+        results_dir = Path(__file__).parent / "eval" / "results"
+        
+        if not results_dir.exists():
+            return {"results": [], "message": "No evaluation results found"}
+        
+        # Find all evaluation result JSON files
+        json_files = list(results_dir.glob("evaluation_results_*.json"))
+        
+        # Sort by modification time (newest first)
+        json_files.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+        
+        # Limit results
+        json_files = json_files[:limit]
+        
+        results = []
+        for file_path in json_files:
+            try:
+                with open(file_path, 'r') as f:
+                    result_data = json.load(f)
+                    
+                # Add file metadata
+                result_data["file_info"] = {
+                    "filename": file_path.name,
+                    "created_time": datetime.fromtimestamp(file_path.stat().st_ctime).isoformat(),
+                    "modified_time": datetime.fromtimestamp(file_path.stat().st_mtime).isoformat(),
+                    "size_bytes": file_path.stat().st_size
+                }
+                
+                results.append(result_data)
+                
+            except Exception as e:
+                logger.warning(f"Failed to load evaluation result {file_path}: {e}")
+                continue
+        
+        return {
+            "results": results,
+            "total_files": len(results),
+            "results_directory": str(results_dir)
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get evaluation results: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=ErrorResponse(
+                error=ErrorDetail(
+                    code="RESULTS_RETRIEVAL_FAILED",
+                    message="Failed to retrieve evaluation results"
+                )
+            ).dict()
+        )
+
+
+@app.get("/eval/compare")
+async def compare_evaluations(
+    traditional_file: Optional[str] = None,
+    agentic_file: Optional[str] = None
+):
+    """
+    Compare Traditional vs Agentic RAG evaluation results.
+    
+    Args:
+        traditional_file: Filename of traditional evaluation results
+        agentic_file: Filename of agentic evaluation results
+        
+    Returns:
+        Comparison analysis between the two evaluation modes
+    """
+    try:
+        import json
+        from pathlib import Path
+        
+        results_dir = Path(__file__).parent / "eval" / "results"
+        
+        # If no specific files provided, get the most recent of each type
+        if not traditional_file or not agentic_file:
+            json_files = list(results_dir.glob("evaluation_results_*.json"))
+            json_files.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+            
+            traditional_data = None
+            agentic_data = None
+            
+            for file_path in json_files:
+                try:
+                    with open(file_path, 'r') as f:
+                        data = json.load(f)
+                        mode = data.get("metadata", {}).get("mode", "")
+                        
+                        if "traditional" in mode and not traditional_data:
+                            traditional_data = data
+                        elif "agentic" in mode and not agentic_data:
+                            agentic_data = data
+                            
+                        if traditional_data and agentic_data:
+                            break
+                except:
+                    continue
+        else:
+            # Load specific files
+            traditional_path = results_dir / traditional_file
+            agentic_path = results_dir / agentic_file
+            
+            with open(traditional_path, 'r') as f:
+                traditional_data = json.load(f)
+            with open(agentic_path, 'r') as f:
+                agentic_data = json.load(f)
+        
+        if not traditional_data or not agentic_data:
+            return {
+                "error": "Could not find both traditional and agentic evaluation results",
+                "available_files": [f.name for f in results_dir.glob("*.json")]
+            }
+        
+        # Perform comparison analysis
+        comparison = {
+            "metadata": {
+                "comparison_timestamp": datetime.utcnow().isoformat(),
+                "traditional_timestamp": traditional_data.get("metadata", {}).get("evaluation_timestamp"),
+                "agentic_timestamp": agentic_data.get("metadata", {}).get("evaluation_timestamp")
+            },
+            "ragas_comparison": {},
+            "retrieval_comparison": {},
+            "performance_comparison": {},
+            "success_rate_comparison": {}
+        }
+        
+        # Compare RAGAS metrics
+        trad_ragas = traditional_data.get("ragas_summary", {})
+        agent_ragas = agentic_data.get("ragas_summary", {})
+        
+        for metric in ["faithfulness_score", "answer_relevancy_score", "context_precision_score", "context_recall_score"]:
+            avg_metric = f"avg_{metric}"
+            if avg_metric in trad_ragas and avg_metric in agent_ragas:
+                comparison["ragas_comparison"][metric] = {
+                    "traditional": trad_ragas[avg_metric],
+                    "agentic": agent_ragas[avg_metric],
+                    "improvement": agent_ragas[avg_metric] - trad_ragas[avg_metric],
+                    "improvement_pct": ((agent_ragas[avg_metric] - trad_ragas[avg_metric]) / trad_ragas[avg_metric] * 100) if trad_ragas[avg_metric] > 0 else 0
+                }
+        
+        # Compare retrieval metrics
+        trad_retrieval = traditional_data.get("retrieval_metrics", {})
+        agent_retrieval = agentic_data.get("retrieval_metrics", {})
+        
+        for metric in ["recall_at_k", "ndcg_at_k", "mrr_score", "precision_at_k"]:
+            if metric in trad_retrieval and metric in agent_retrieval:
+                comparison["retrieval_comparison"][metric] = {
+                    "traditional": trad_retrieval[metric],
+                    "agentic": agent_retrieval[metric], 
+                    "improvement": agent_retrieval[metric] - trad_retrieval[metric],
+                    "improvement_pct": ((agent_retrieval[metric] - trad_retrieval[metric]) / trad_retrieval[metric] * 100) if trad_retrieval[metric] > 0 else 0
+                }
+        
+        # Compare performance metrics
+        trad_perf = traditional_data.get("performance_summary", {})
+        agent_perf = agentic_data.get("performance_summary", {})
+        
+        for metric in ["avg_response_time_ms", "avg_token_usage", "success_rate"]:
+            if metric in trad_perf and metric in agent_perf:
+                comparison["performance_comparison"][metric] = {
+                    "traditional": trad_perf[metric],
+                    "agentic": agent_perf[metric],
+                    "improvement": agent_perf[metric] - trad_perf[metric],
+                    "improvement_pct": ((agent_perf[metric] - trad_perf[metric]) / trad_perf[metric] * 100) if trad_perf[metric] > 0 else 0
+                }
+        
+        return comparison
+        
+    except Exception as e:
+        logger.error(f"Comparison failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=ErrorResponse(
+                error=ErrorDetail(
+                    code="COMPARISON_FAILED",
+                    message=f"Failed to compare evaluations: {str(e)}"
+                )
+            ).dict()
+        )
+
+
+# Phase 9: Performance & Cost Tuning Endpoints
+
+@app.get("/performance/stats")
+async def get_performance_stats(retriever_instance: HybridRetriever = Depends(get_retriever)):
+    """
+    Get comprehensive performance and caching statistics.
+    
+    Returns detailed metrics including:
+    - Retrieval performance (latency, throughput)
+    - Cache hit rates and efficiency
+    - HNSW configuration status
+    - Resource utilization
+    """
+    try:
+        stats = await retriever_instance.get_stats()
+        
+        # Add system-level performance metrics
+        stats["system_metrics"] = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "uptime_seconds": time.time() - app_start_time if 'app_start_time' in globals() else 0
+        }
+        
+        return stats
+        
+    except Exception as e:
+        logger.error(f"Failed to get performance stats: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=ErrorResponse(
+                error=ErrorDetail(
+                    code="STATS_FAILED",
+                    message="Failed to retrieve performance statistics"
+                )
+            ).dict()
+        )
+
+
+@app.post("/cache/clear")
+async def clear_caches(cache_type: Optional[str] = None, 
+                      retriever_instance: HybridRetriever = Depends(get_retriever)):
+    """
+    Clear specified cache or all caches.
+    
+    Args:
+        cache_type: Type of cache to clear ('embedding', 'candidate', 'rerank', 'prompt', 'bm25', 'all')
+    """
+    try:
+        if cache_type is None or cache_type == "all":
+            # Clear all caches
+            if retriever_instance.cache_manager:
+                await retriever_instance.cache_manager.clear_all_caches()
+            retriever_instance.clear_cache()  # Legacy BM25 cache
+            logger.info("All caches cleared")
+            return {"message": "All caches cleared successfully"}
+        
+        # Clear specific cache type
+        if cache_type == "embedding" and retriever_instance.cache_manager and retriever_instance.cache_manager.embedding_cache:
+            await retriever_instance.cache_manager.embedding_cache.cache.clear()
+        elif cache_type == "candidate" and retriever_instance.cache_manager and retriever_instance.cache_manager.candidate_cache:
+            await retriever_instance.cache_manager.candidate_cache.cache.clear()
+        elif cache_type == "rerank" and retriever_instance.cache_manager and retriever_instance.cache_manager.rerank_cache:
+            await retriever_instance.cache_manager.rerank_cache.cache.clear()
+        elif cache_type == "prompt" and retriever_instance.cache_manager and retriever_instance.cache_manager.prompt_cache:
+            await retriever_instance.cache_manager.prompt_cache.cache.clear()
+        elif cache_type == "bm25":
+            retriever_instance.clear_cache()
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unknown cache type: {cache_type}. Valid types: embedding, candidate, rerank, prompt, bm25, all"
+            )
+        
+        logger.info(f"Cache type '{cache_type}' cleared")
+        return {"message": f"Cache type '{cache_type}' cleared successfully"}
+        
+    except Exception as e:
+        logger.error(f"Failed to clear cache: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=ErrorResponse(
+                error=ErrorDetail(
+                    code="CACHE_CLEAR_FAILED",
+                    message=f"Failed to clear cache: {str(e)}"
+                )
+            ).dict()
+        )
+
+
+@app.get("/tuning/config")
+async def get_tuning_config():
+    """
+    Get current performance tuning configuration.
+    
+    Returns the current retrieval_tuning.yaml configuration.
+    """
+    try:
+        config_path = "retrieval_tuning.yaml"
+        if not os.path.exists(config_path):
+            return {"message": "No tuning configuration found", "config": {}}
+        
+        import yaml
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+        
+        return {
+            "config_path": config_path,
+            "config": config,
+            "last_modified": datetime.fromtimestamp(os.path.getmtime(config_path)).isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get tuning config: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=ErrorResponse(
+                error=ErrorDetail(
+                    code="CONFIG_FAILED",
+                    message="Failed to retrieve tuning configuration"
+                )
+            ).dict()
+        )
+
+
+@app.post("/tuning/benchmark")
+async def run_performance_benchmark(
+    num_queries: int = 10,
+    retriever_instance: HybridRetriever = Depends(get_retriever)
+):
+    """
+    Run a performance benchmark to test current configuration.
+    
+    Args:
+        num_queries: Number of test queries to run
+    """
+    try:
+        import random
+        
+        # Sample queries for benchmarking
+        sample_queries = [
+            "What is artificial intelligence?",
+            "How does machine learning work?",
+            "Explain neural networks",
+            "What are the benefits of cloud computing?",
+            "How to implement data security?",
+            "What is the difference between AI and ML?",
+            "Explain deep learning algorithms",
+            "How to optimize database performance?",
+            "What are microservices architecture patterns?",
+            "How to implement REST APIs?"
+        ]
+        
+        # Run benchmark
+        start_time = time.time()
+        latencies = []
+        cache_hits = 0
+        total_queries_before = retriever_instance.stats.get("total_queries", 0)
+        cache_hits_before = retriever_instance.stats.get("cache_hits", 0)
+        
+        for i in range(num_queries):
+            query = random.choice(sample_queries)
+            
+            query_start = time.time()
+            try:
+                # Run a test retrieval
+                request = RetrievalRequest(
+                    query=query,
+                    top_k=5,
+                    method="hybrid"
+                )
+                await retriever_instance.retrieve(request)
+                query_latency = (time.time() - query_start) * 1000
+                latencies.append(query_latency)
+            except Exception as e:
+                logger.warning(f"Benchmark query {i+1} failed: {e}")
+                continue
+        
+        total_time = time.time() - start_time
+        total_queries_after = retriever_instance.stats.get("total_queries", 0)
+        cache_hits_after = retriever_instance.stats.get("cache_hits", 0)
+        
+        # Calculate statistics
+        if latencies:
+            import numpy as np
+            p50 = np.percentile(latencies, 50)
+            p95 = np.percentile(latencies, 95)
+            p99 = np.percentile(latencies, 99)
+            mean_latency = np.mean(latencies)
+        else:
+            p50 = p95 = p99 = mean_latency = 0
+        
+        benchmark_results = {
+            "benchmark_timestamp": datetime.utcnow().isoformat(),
+            "configuration": {
+                "num_queries": num_queries,
+                "queries_completed": len(latencies)
+            },
+            "latency_metrics": {
+                "mean_ms": round(mean_latency, 2),
+                "p50_ms": round(p50, 2),
+                "p95_ms": round(p95, 2),
+                "p99_ms": round(p99, 2),
+                "min_ms": round(min(latencies), 2) if latencies else 0,
+                "max_ms": round(max(latencies), 2) if latencies else 0
+            },
+            "throughput_metrics": {
+                "total_time_s": round(total_time, 2),
+                "queries_per_second": round(len(latencies) / total_time, 2) if total_time > 0 else 0
+            },
+            "cache_metrics": {
+                "cache_hits_during_benchmark": cache_hits_after - cache_hits_before,
+                "cache_hit_rate": round((cache_hits_after - cache_hits_before) / max(1, total_queries_after - total_queries_before), 3)
+            },
+            "performance_targets": {
+                "p50_target_ms": 800,
+                "p95_target_ms": 1500,
+                "p50_met": p50 <= 800,
+                "p95_met": p95 <= 1500
+            }
+        }
+        
+        return benchmark_results
+        
+    except Exception as e:
+        logger.error(f"Benchmark failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=ErrorResponse(
+                error=ErrorDetail(
+                    code="BENCHMARK_FAILED",
+                    message=f"Performance benchmark failed: {str(e)}"
+                )
+            ).dict()
+        )
+
+
+# Track application start time for uptime calculation
+app_start_time = time.time()
+
+
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
