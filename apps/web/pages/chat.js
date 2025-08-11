@@ -4,7 +4,7 @@ import { ChatInput } from '../src/components/ChatInput'
 import { ChatStream, useStreamingChat } from '../src/components/ChatStream'
 import { Button } from '../src/components/ui/button'
 import { CompactModeToggle, ModeStatus } from '../src/components/ModeToggle'
-import { Trash2, Moon, Sun, MessageSquare, Settings } from 'lucide-react'
+import { Trash2, Moon, Sun, MessageSquare } from 'lucide-react'
 
 /**
  * Main chat page for the MAI Storage RAG system
@@ -22,7 +22,6 @@ export default function ChatPage() {
 
   const [darkMode, setDarkMode] = useState(false)
   const [agenticMode, setAgenticMode] = useState(false)
-  const [showSettings, setShowSettings] = useState(false)
   const mountedRef = useRef(false)
 
   // Initialize dark mode and agentic mode from localStorage or defaults
@@ -134,16 +133,6 @@ export default function ChatPage() {
               disabled={isLoading}
             />
 
-            {/* Settings button */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setShowSettings(!showSettings)}
-              className="hidden sm:flex"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
-
             {/* Clear chat button */}
             <Button
               variant="outline"
@@ -192,22 +181,31 @@ export default function ChatPage() {
         </header>
 
         {/* Chat content area */}
-        <main className="flex-1 flex flex-col min-h-0">
-          {/* Messages area */}
-          <ChatStream
-            messages={messages}
-            onRetry={handleRetryMessage}
-            isLoading={isLoading}
-            ragMode={agenticMode}
-          />
+        <main className="flex-1 flex flex-col min-h-0 bg-muted/30">
+          <div className="container mx-auto px-4 py-6 flex-1 flex flex-col min-h-0">
+            {/* Chat container with visual styling */}
+            <div className="flex-1 flex flex-col min-h-0 bg-background rounded-lg border shadow-sm">
+              {/* Messages area */}
+              <div className="flex-1 min-h-0 p-4 pr-12 overflow-y-auto">
+                <ChatStream
+                  messages={messages}
+                  onRetry={handleRetryMessage}
+                  isLoading={isLoading}
+                  ragMode={agenticMode}
+                />
+              </div>
 
-          {/* Input area */}
-          <ChatInput
-            onSendMessage={handleSendMessage}
-            isLoading={isLoading}
-            disabled={false}
-            placeholder={`Ask a question using ${agenticMode ? 'Agentic' : 'Traditional'} RAG...`}
-          />
+              {/* Input area with border separator */}
+              <div className="border-t bg-background/50 p-4 rounded-b-lg">
+                <ChatInput
+                  onSendMessage={handleSendMessage}
+                  isLoading={isLoading}
+                  disabled={false}
+                  placeholder={`Ask a question using ${agenticMode ? 'Agentic' : 'Traditional'} RAG...`}
+                />
+              </div>
+            </div>
+          </div>
         </main>
 
         {/* Footer */}

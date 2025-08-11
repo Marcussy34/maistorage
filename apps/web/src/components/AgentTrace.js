@@ -61,6 +61,48 @@ function formatTiming(timeMs) {
 }
 
 /**
+ * Format plan text by converting markdown-style formatting to React elements
+ */
+function formatPlanText(text) {
+  if (!text) return text
+  
+  const lines = text.split('\n')
+  
+  return lines.map((line, index) => {
+    // Skip empty lines but preserve spacing
+    if (line.trim() === '') {
+      return <div key={index} className="h-2"></div>
+    }
+    
+    // Handle numbered sections (add extra spacing after)
+    const isNumberedSection = /^\d+\.\s*\*\*/.test(line)
+    
+    // Handle bold text (**text**)
+    if (line.includes('**')) {
+      const parts = line.split(/(\*\*[^*]+\*\*)/g)
+      return (
+        <div key={index} className={isNumberedSection ? 'mb-3' : 'mb-1'}>
+          {parts.map((part, partIndex) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+              const boldText = part.slice(2, -2)
+              return (
+                <span key={partIndex} className="font-semibold text-foreground">
+                  {boldText}
+                </span>
+              )
+            }
+            return <span key={partIndex}>{part}</span>
+          })}
+        </div>
+      )
+    }
+    
+    // Regular line with proper spacing
+    return <div key={index} className="mb-1">{line}</div>
+  })
+}
+
+/**
  * Individual trace step component
  */
 export function TraceStep({ event, isLast = false }) {
@@ -119,8 +161,16 @@ export function TraceStep({ event, isLast = false }) {
         )}
         
         {data.plan && (
-          <div className="text-xs text-muted-foreground mb-1">
-            Plan: {data.plan.substring(0, 100)}...
+          <div className="mb-2">
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="h-3 w-3 text-blue-600" />
+              <span className="font-medium text-xs text-foreground">Plan</span>
+            </div>
+            <div className="bg-background border rounded-lg p-3 shadow-sm">
+              <div className="text-xs text-foreground leading-relaxed whitespace-pre-wrap">
+                {formatPlanText(data.plan)}
+              </div>
+            </div>
           </div>
         )}
         
@@ -154,7 +204,13 @@ export function TraceStep({ event, isLast = false }) {
 
         {/* Timestamp */}
         <div className="text-xs text-muted-foreground mt-1">
-          {new Date(timestamp).toLocaleTimeString()}
+          {new Date(timestamp).toLocaleTimeString('en-MY', {
+            timeZone: 'Asia/Kuala_Lumpur',
+            hour12: true,
+            hour: 'numeric',
+            minute: '2-digit',
+            second: '2-digit'
+          })}
         </div>
       </div>
     </div>
