@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>MAI Storage - Agentic RAG System</title>
+        <title>MaiStorage - Agentic RAG System</title>
         <meta name="description" content="Advanced document search and Q&A powered by agentic RAG technology" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
@@ -24,10 +24,10 @@ export default function Home() {
             </div>
             
             <h1 className="text-4xl font-bold tracking-tight mb-4">
-              MAI Storage
+              MaiStorage - Question 1 Agentic RAG
             </h1>
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Advanced Agentic RAG System - Phase 4 Complete
+              Advanced Agentic RAG System
             </p>
             <p className="text-lg text-muted-foreground mb-12 max-w-3xl mx-auto">
               Experience intelligent document search with streaming responses, 

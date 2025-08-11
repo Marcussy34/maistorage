@@ -2,14 +2,17 @@
 FastAPI main application for MAI Storage RAG API.
 """
 
+import asyncio
+import json
 import logging
 import os
 import time
 from datetime import datetime
-from typing import Optional
+from typing import Optional, AsyncGenerator
 
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic_settings import BaseSettings
 import uvicorn
 
@@ -21,6 +24,7 @@ from models import (
 from retrieval import HybridRetriever
 from rag_baseline import BaselineRAG, RAGRequest, RAGResponse, create_baseline_rag
 from llm_client import LLMConfig
+from graph import AgenticRAG, create_agentic_rag, TraceEvent, TraceEventType
 
 # Configure logging
 logging.basicConfig(
@@ -68,13 +72,14 @@ app.add_middleware(
 # Global state
 retriever: Optional[HybridRetriever] = None
 baseline_rag: Optional[BaselineRAG] = None
+agentic_rag: Optional[AgenticRAG] = None
 app_start_time = time.time()
 
 
 @app.on_event("startup")
 async def startup_event():
     """Initialize services on startup."""
-    global retriever, baseline_rag
+    global retriever, baseline_rag, agentic_rag
     
     logger.info("Starting MAI Storage RAG API...")
     
@@ -98,6 +103,16 @@ async def startup_event():
         )
         
         logger.info("Baseline RAG system initialized successfully")
+        
+        # Initialize agentic RAG system (Phase 5)
+        agentic_rag = create_agentic_rag(
+            retriever=retriever,
+            model=settings.openai_model,
+            api_key=settings.openai_api_key,
+            temperature=0.7
+        )
+        
+        logger.info("Agentic RAG system initialized successfully")
         
     except Exception as e:
         logger.error(f"Failed to initialize services: {e}")
@@ -130,6 +145,16 @@ def get_baseline_rag() -> BaselineRAG:
     return baseline_rag
 
 
+def get_agentic_rag() -> AgenticRAG:
+    """Dependency to get the agentic RAG instance."""
+    if agentic_rag is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Agentic RAG service not initialized"
+        )
+    return agentic_rag
+
+
 @app.get("/", response_model=dict)
 async def read_root():
     """Root endpoint with API information."""
@@ -144,9 +169,11 @@ async def read_root():
             "hybrid_retrieval": "Dense vector + BM25 + RRF fusion",
             "reranking": "Cross-encoder reranking with BGE-reranker-v2",
             "baseline_rag": "Traditional RAG with citations",
+            "agentic_rag": "Multi-step agentic RAG with LangGraph (Phase 5)",
             "endpoints": {
                 "retrieve": "POST /retrieve - Hybrid document retrieval",
                 "rag": "POST /rag - Baseline RAG generation with citations",
+                "chat/stream": "POST /chat/stream - Streaming agentic/baseline RAG with trace events",
                 "health": "GET /health - System health check",
                 "stats": "GET /stats - Performance metrics"
             }
@@ -388,6 +415,266 @@ async def clear_cache(retriever_instance: HybridRetriever = Depends(get_retrieve
         raise HTTPException(
             status_code=500,
             detail="Failed to clear cache"
+        )
+
+
+# Pydantic models for agentic chat streaming
+from pydantic import BaseModel, Field
+
+
+class ChatStreamRequest(BaseModel):
+    """Request for agentic chat streaming."""
+    
+    query: str = Field(..., description="User query", min_length=1)
+    top_k: int = Field(default=10, description="Number of documents to retrieve", ge=1, le=50)
+    enable_verification: bool = Field(default=True, description="Enable answer verification")
+    max_refinements: int = Field(default=2, description="Maximum refinement iterations", ge=0, le=5)
+    
+    # Stream control
+    stream_traces: bool = Field(default=True, description="Stream trace events")
+    stream_tokens: bool = Field(default=False, description="Stream individual tokens (future feature)")
+
+
+@app.post("/chat/stream")
+async def chat_stream(
+    request: ChatStreamRequest,
+    agentic: bool = False,
+    agentic_rag_instance: AgenticRAG = Depends(get_agentic_rag),
+    baseline_rag_instance: BaselineRAG = Depends(get_baseline_rag)
+):
+    """
+    Stream chat responses with agentic or baseline RAG.
+    
+    This endpoint implements Phase 5 agentic streaming with NDJSON events:
+    - ?agentic=1: Use multi-step agentic RAG with trace events
+    - ?agentic=0 (default): Use baseline RAG for comparison
+    
+    Events emitted:
+    - step_start: When a workflow step begins
+    - step_complete: When a workflow step completes  
+    - sources: Retrieved source documents
+    - verification: Verification results
+    - metrics: Performance metrics
+    - done: Workflow completion
+    
+    Args:
+        request: Chat request with query and parameters
+        agentic: Whether to use agentic (True) or baseline (False) RAG
+        
+    Returns:
+        Streaming NDJSON response with trace events and final answer
+    """
+    try:
+        logger.info(f"Chat stream request: agentic={agentic}, query_length={len(request.query)}")
+        
+        if agentic:
+            # Use agentic RAG with streaming trace events
+            async def agentic_stream_generator() -> AsyncGenerator[str, None]:
+                try:
+                    # Run the agentic workflow
+                    final_state = await agentic_rag_instance.run(
+                        query=request.query,
+                        top_k=request.top_k,
+                        enable_verification=request.enable_verification,
+                        max_refinements=request.max_refinements
+                    )
+                    
+                    # Stream trace events
+                    if request.stream_traces:
+                        for trace_event in final_state.get("trace_events", []):
+                            event_data = {
+                                "type": trace_event.event_type.value,
+                                "timestamp": trace_event.timestamp.isoformat(),
+                                "step": trace_event.step.value if trace_event.step else None,
+                                "data": trace_event.data
+                            }
+                            yield f"data: {json.dumps(event_data)}\n\n"
+                            
+                            # Small delay to allow client processing
+                            await asyncio.sleep(0.01)
+                    
+                    # Stream final answer
+                    answer_data = {
+                        "type": "answer",
+                        "content": final_state.get("answer", ""),
+                        "citations": final_state.get("citations", []),
+                        "metadata": {
+                            "total_time_ms": final_state.get("total_time_ms", 0),
+                            "refinement_count": final_state.get("refinement_count", 0),
+                            "step_times": final_state.get("step_times", {}),
+                            "verification_passed": not final_state.get("needs_refinement", False)
+                        }
+                    }
+                    yield f"data: {json.dumps(answer_data)}\n\n"
+                    
+                    # Final done event
+                    done_data = {
+                        "type": "done",
+                        "success": True,
+                        "timestamp": datetime.utcnow().isoformat()
+                    }
+                    yield f"data: {json.dumps(done_data)}\n\n"
+                    
+                except Exception as e:
+                    logger.error(f"Agentic stream failed: {e}")
+                    error_data = {
+                        "type": "error",
+                        "error": str(e),
+                        "timestamp": datetime.utcnow().isoformat()
+                    }
+                    yield f"data: {json.dumps(error_data)}\n\n"
+            
+            return StreamingResponse(
+                agentic_stream_generator(),
+                media_type="text/plain",
+                headers={
+                    "Cache-Control": "no-cache",
+                    "Connection": "keep-alive",
+                    "X-RAG-Type": "agentic"
+                }
+            )
+        
+        else:
+            # Use baseline RAG with simulated streaming for comparison
+            async def baseline_stream_generator() -> AsyncGenerator[str, None]:
+                try:
+                    # Create RAG request
+                    rag_request = RAGRequest(
+                        query=request.query,
+                        top_k=request.top_k
+                    )
+                    
+                    # Generate baseline response
+                    start_time = time.time()
+                    rag_response = await baseline_rag_instance.generate(rag_request)
+                    total_time = (time.time() - start_time) * 1000
+                    
+                    # Emit start event
+                    start_data = {
+                        "type": "step_start",
+                        "step": "baseline_rag",
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "data": {"query": request.query}
+                    }
+                    yield f"data: {json.dumps(start_data)}\n\n"
+                    await asyncio.sleep(0.05)
+                    
+                    # Emit sources event
+                    sources_data = {
+                        "type": "sources",
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "data": {
+                            "sources": [
+                                {
+                                    "doc_name": citation.doc_name,
+                                    "chunk_index": citation.chunk_index,
+                                    "text_snippet": citation.text_snippet,
+                                    "relevance_score": citation.score
+                                }
+                                for citation in rag_response.citations
+                            ]
+                        }
+                    }
+                    yield f"data: {json.dumps(sources_data)}\n\n"
+                    await asyncio.sleep(0.05)
+                    
+                    # Simulate token streaming by splitting answer into words
+                    words = rag_response.answer.split()
+                    answer_so_far = ""
+                    
+                    for word in words:
+                        answer_so_far += word + " "
+                        token_data = {
+                            "type": "token",
+                            "content": word + " ",
+                            "partial_answer": answer_so_far.strip(),
+                            "timestamp": datetime.utcnow().isoformat()
+                        }
+                        yield f"data: {json.dumps(token_data)}\n\n"
+                        await asyncio.sleep(0.05)  # 50ms delay between words
+                    
+                    # Emit completion event
+                    complete_data = {
+                        "type": "step_complete",
+                        "step": "baseline_rag",
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "data": {"time_ms": total_time}
+                    }
+                    yield f"data: {json.dumps(complete_data)}\n\n"
+                    
+                    # Stream final answer data
+                    answer_data = {
+                        "type": "answer",
+                        "content": rag_response.answer,
+                        "citations": [
+                            {
+                                "doc_name": citation.doc_name,
+                                "chunk_index": citation.chunk_index,
+                                "text_snippet": citation.text_snippet,
+                                "relevance_score": citation.score
+                            }
+                            for citation in rag_response.citations
+                        ],
+                        "metadata": {
+                            "total_time_ms": total_time,
+                            "generation_time_ms": rag_response.generation_time_ms,
+                            "retrieval_time_ms": rag_response.retrieval_time_ms,
+                            "tokens_used": rag_response.tokens_used
+                        }
+                    }
+                    yield f"data: {json.dumps(answer_data)}\n\n"
+                    
+                    # Final done event
+                    done_data = {
+                        "type": "done",
+                        "success": True,
+                        "timestamp": datetime.utcnow().isoformat()
+                    }
+                    yield f"data: {json.dumps(done_data)}\n\n"
+                    
+                except Exception as e:
+                    logger.error(f"Baseline stream failed: {e}")
+                    error_data = {
+                        "type": "error",
+                        "error": str(e),
+                        "timestamp": datetime.utcnow().isoformat()
+                    }
+                    yield f"data: {json.dumps(error_data)}\n\n"
+            
+            return StreamingResponse(
+                baseline_stream_generator(),
+                media_type="text/plain",
+                headers={
+                    "Cache-Control": "no-cache",
+                    "Connection": "keep-alive",
+                    "X-RAG-Type": "baseline"
+                }
+            )
+    
+    except ValueError as e:
+        # Client error (bad request)
+        logger.warning(f"Invalid chat stream request: {e}")
+        raise HTTPException(
+            status_code=400,
+            detail=ErrorResponse(
+                error=ErrorDetail(
+                    code="INVALID_REQUEST",
+                    message=str(e)
+                )
+            ).dict()
+        )
+    
+    except Exception as e:
+        # Server error
+        logger.error(f"Chat stream failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=ErrorResponse(
+                error=ErrorDetail(
+                    code="CHAT_STREAM_FAILED",
+                    message="Internal server error during chat streaming"
+                )
+            ).dict()
         )
 
 
