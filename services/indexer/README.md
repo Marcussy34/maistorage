@@ -21,7 +21,7 @@ The document indexer processes raw documents (PDF, Markdown, HTML, TXT) and conv
 
 - `ingest.py` - Main ingestion script with full pipeline implementation
 - `test_basic.py` - Basic functionality tests (no API key required)
-- `test_without_openai.py` - Complete pipeline test with fake embeddings
+- All tests use OpenAI embeddings (test_without_openai.py removed)
 - `verify_storage.py` - Verification and inspection tools
 - `requirements.txt` - Python dependencies
 - `README.md` - This documentation
@@ -43,8 +43,7 @@ source venv/bin/activate
 # Test basic functionality (no API key needed)
 python test_basic.py
 
-# Test with fake embeddings
-python test_without_openai.py
+# All tests use OpenAI embeddings
 
 # Real ingestion (requires OpenAI API key)
 python ingest.py --path ../../data
@@ -107,8 +106,8 @@ The indexer includes comprehensive testing at multiple levels:
 - Text splitting functionality
 - Qdrant connection testing
 
-### Integration Tests (`test_without_openai.py`)
-- End-to-end pipeline with fake embeddings
+### Integration Tests
+- End-to-end pipeline with OpenAI embeddings
 - Collection creation and data storage
 - Metadata validation
 

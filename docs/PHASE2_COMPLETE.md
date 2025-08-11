@@ -1,10 +1,10 @@
 # 🎉 Phase 2 Complete: Retrieval Core (Hybrid + Rerank)
 
-**Status**: ✅ **COMPLETED** - All acceptance criteria met
+**Status**: ✅ **COMPLETED** - All acceptance criteria met with OpenAI Embeddings
 
 ## Summary
 
-Phase 2 of the MAI Storage agentic RAG system has been successfully implemented, delivering a comprehensive hybrid retrieval system that combines dense vector search, BM25 lexical search, reciprocal rank fusion, cross-encoder reranking, and maximal marginal relevance for diversity.
+Phase 2 of the MAI Storage agentic RAG system has been successfully implemented with **OpenAI embeddings**, delivering a comprehensive hybrid retrieval system that combines dense vector search, BM25 lexical search, reciprocal rank fusion, cross-encoder reranking, and maximal marginal relevance for diversity.
 
 ## Implemented Features
 
