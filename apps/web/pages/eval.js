@@ -506,16 +506,26 @@ export default function EvaluationPage() {
                                 {metric.replace('avg_', '').replace('_', ' ')}
                               </p>
                               <div className="flex items-center justify-center mt-1">
-                                {getImprovementIcon(metric === 'avg_response_time_ms' ? -data.improvement : data.improvement)}
+                                {getImprovementIcon(
+                                  metric === 'avg_response_time_ms' 
+                                    ? -data.improvement 
+                                    : metric.includes('token')
+                                      ? -data.improvement // For token usage, negative improvement is positive
+                                      : data.improvement
+                                )}
                                 <span className={`ml-1 font-medium ${
                                   metric === 'avg_response_time_ms' 
                                     ? getImprovementColor(-data.improvement)
-                                    : getImprovementColor(data.improvement)
+                                    : metric.includes('token')
+                                      ? getImprovementColor(-data.improvement) // For token usage, negative improvement is positive
+                                      : getImprovementColor(data.improvement)
                                 }`}>
                                   {metric === 'avg_response_time_ms' && data.improvement > 0 ? '+' : ''}
                                   {metric === 'avg_response_time_ms' 
                                     ? data.improvement.toFixed(0) + 'ms'
-                                    : (data.improvement_pct > 0 ? '+' : '') + data.improvement_pct.toFixed(1) + '%'
+                                    : metric.includes('token')
+                                      ? (data.improvement_pct < 0 ? '+' : '') + Math.abs(data.improvement_pct).toFixed(1) + '%' // Show absolute value for token usage
+                                      : (data.improvement_pct > 0 ? '+' : '') + data.improvement_pct.toFixed(1) + '%'
                                   }
                                 </span>
                               </div>
