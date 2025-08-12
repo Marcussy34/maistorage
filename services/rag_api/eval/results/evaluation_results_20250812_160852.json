@@ -1,0 +1,1071 @@
+{
+  "metadata": {
+    "evaluation_timestamp": "2025-08-12T16:08:52.991288",
+    "total_questions": 21,
+    "successful_evaluations": 21,
+    "failed_evaluations": 0,
+    "mode": "agentic"
+  },
+  "retrieval_metrics": {
+    "recall_at_k": 0.9241666666666667,
+    "ndcg_at_k": 0.9188756472506231,
+    "mrr_score": 0.95,
+    "precision_at_k": 0.7400000000000001,
+    "map_score": 0.7400000000000001
+  },
+  "ragas_summary": {
+    "avg_faithfulness_score": 0.4057142857142857,
+    "avg_answer_relevancy_score": 0.3857142857142857,
+    "avg_context_precision_score": 0.37571428571428567,
+    "avg_context_recall_score": 0.35571428571428565,
+    "std_faithfulness_score": 0.08,
+    "std_answer_relevancy_score": 0.06,
+    "std_context_precision_score": 0.05,
+    "std_context_recall_score": 0.07,
+    "min_faithfulness_score": 0.6,
+    "max_faithfulness_score": 0.5057142857142857,
+    "min_answer_relevancy_score": 0.6,
+    "max_answer_relevancy_score": 0.48571428571428565,
+    "min_context_precision_score": 0.5,
+    "max_context_precision_score": 0.4657142857142857,
+    "min_context_recall_score": 0.5,
+    "max_context_recall_score": 0.4457142857142857,
+    "_fallback_metrics": true,
+    "_base_score": 0.3857142857142857,
+    "_performance_factors": {
+      "time_factor": 0.6,
+      "source_factor": 0.9523809523809523,
+      "token_factor": 0.9
+    }
+  },
+  "performance_summary": {
+    "avg_response_time_ms": 10392.42822783334,
+    "p50_response_time_ms": 9401.539087295532,
+    "p95_response_time_ms": 16064.18514251709,
+    "avg_token_usage": 681.8095238095239,
+    "total_token_usage": "14318",
+    "avg_retrieval_time_ms": 0.0,
+    "success_rate": 1.0
+  },
+  "detailed_results": [
+    {
+      "question_id": 1,
+      "question": "What is Python?",
+      "answer": "Python is described as a high-level, interpreted programming language characterized by a simple, easy-to-learn syntax that emphasizes readability. This focus on readability helps reduce the cost of program maintenance. Additionally, Python supports modules and packages, which encourages program modularity and code reuse [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Sample Document\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programming language with a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse.\n\nMachine Learning",
+          "doc_id": "5e1b9747-5822-4f85-914a-aea325ee2617",
+          "score": 0.9889726042747498,
+          "title": "Unknown"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programming language with a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse.\n\nMachine Learning",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.9608234167098999,
+          "title": "Unknown"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.\n\nArtificial Intelligence",
+          "doc_id": "18bf5545-5d9d-4eee-a311-46f974faeba6",
+          "score": 0.0029496564529836178,
+          "title": "Unknown"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.\n\nArtificial Intelligence",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.0029496564529836178,
+          "title": "Unknown"
+        },
+        {
+          "content": "Software Engineering Best Practices\n\nClean Code Principles\n\nWriting maintainable, readable code is essential for long-term project success. Key principles include:\n\nSingle Responsibility Principle\n\nEach class or function should have one reason to change. This promotes modularity and makes code easier to understand and modify.\n\nDRY (Don't Repeat Yourself)",
+          "doc_id": "99210599-29df-42c1-9ada-ee8270b365ea",
+          "score": 0.00028941265190951526,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 8501.344919204712,
+      "token_usage": 640,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:05:21.213871",
+      "error": null
+    },
+    {
+      "question_id": 2,
+      "question": "How does machine learning work?",
+      "answer": "Machine learning works by providing systems with the ability to automatically learn and improve from experience without being explicitly programmed. It focuses on the development of computer programs that can access data and use it to learn for themselves, enabling them to adapt and make decisions based on the information they process [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.\n\nArtificial Intelligence",
+          "doc_id": "18bf5545-5d9d-4eee-a311-46f974faeba6",
+          "score": 0.9876495003700256,
+          "title": "Unknown"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.\n\nArtificial Intelligence",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.9876495003700256,
+          "title": "Unknown"
+        },
+        {
+          "content": "Advanced Machine Learning Concepts\n\nDeep Learning Architecture\n\nDeep learning utilizes neural networks with multiple hidden layers to model complex patterns in data. Convolutional Neural Networks (CNNs) excel at image recognition tasks by learning hierarchical features through convolution operations. Recurrent Neural Networks (RNNs) and their variants like LSTM and GRU are designed to handle sequential data by maintaining memory states.\n\nTransformer Architecture",
+          "doc_id": "994a8b0f-bbf9-4da6-a266-1845c3f1a4a8",
+          "score": 0.21492797136306763,
+          "title": "Unknown"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.\n\nData Science",
+          "doc_id": "7a4df2b3-2259-4a3c-b4e8-b91569631f5f",
+          "score": 0.05054101347923279,
+          "title": "Unknown"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.\n\nData Science",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.05054101347923279,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 10711.093187332153,
+      "token_usage": 617,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:05:31.925069",
+      "error": null
+    },
+    {
+      "question_id": 3,
+      "question": "What is the definition of artificial intelligence?",
+      "answer": "Artificial Intelligence (AI) is defined as the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. It can also refer to any machine that exhibits traits associated with a human mind, such as learning and problem-solving [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.\n\nData Science",
+          "doc_id": "7a4df2b3-2259-4a3c-b4e8-b91569631f5f",
+          "score": 0.9986816048622131,
+          "title": "Unknown"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.\n\nData Science",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.9986816048622131,
+          "title": "Unknown"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.\n\nArtificial Intelligence",
+          "doc_id": "18bf5545-5d9d-4eee-a311-46f974faeba6",
+          "score": 0.41184353828430176,
+          "title": "Unknown"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.\n\nArtificial Intelligence",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.41184353828430176,
+          "title": "Unknown"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and apply knowledge and actionable insights from data across a broad range of application domains.\n\nConclusion\n\nThis document covers multiple topics related to programming, AI, and data science, making it ideal for testing semantic search capabilities.",
+          "doc_id": "43caf06b-c8ba-44f9-98da-0d5b7000792f",
+          "score": 0.011250234209001064,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 7987.875938415527,
+      "token_usage": 606,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:05:39.913027",
+      "error": null
+    },
+    {
+      "question_id": 4,
+      "question": "What does data science involve?",
+      "answer": "Data science involves an interdisciplinary approach that utilizes scientific methods, processes, algorithms, and systems to extract knowledge and insights from both structured and unstructured data. It also includes applying this knowledge and actionable insights across a broad range of application domains [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and apply knowledge and actionable insights from data across a broad range of application domains.\n\nConclusion\n\nThis document covers multiple topics related to programming, AI, and data science, making it ideal for testing semantic search capabilities.",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.9830400347709656,
+          "title": "Unknown"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and apply knowledge and actionable insights from data across a broad range of application domains.\n\nConclusion\n\nThis document covers multiple topics related to programming, AI, and data science, making it ideal for testing semantic search capabilities.",
+          "doc_id": "43caf06b-c8ba-44f9-98da-0d5b7000792f",
+          "score": 0.9830400347709656,
+          "title": "Unknown"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.\n\nData Science",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.10022955387830734,
+          "title": "Unknown"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.\n\nData Science",
+          "doc_id": "7a4df2b3-2259-4a3c-b4e8-b91569631f5f",
+          "score": 0.10022955387830734,
+          "title": "Unknown"
+        },
+        {
+          "content": "Interpretability and Explainability\n\nUnderstanding model decisions through various techniques:\n\nSHAP values: Unified framework for feature importance\n\nLIME: Local interpretable model-agnostic explanations\n\nAttention visualization: Understanding what models focus on\n\nGradient-based methods: Using gradients to identify important features\n\nDistributed Training\n\nScaling machine learning to large datasets and models:\n\nData parallelism: Distributing data across multiple GPUs/nodes",
+          "doc_id": "f713ee86-b31d-4154-b4c3-0109d3f00e86",
+          "score": 0.001583225792273879,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 8907.459735870361,
+      "token_usage": 646,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:05:48.820557",
+      "error": null
+    },
+    {
+      "question_id": 5,
+      "question": "Why is Python's syntax important?",
+      "answer": "Python's syntax is important because it is simple and easy to learn, which emphasizes readability. This readability reduces the cost of program maintenance, making it easier for developers to understand and modify the code over time. Additionally, Python supports modules and packages, promoting program modularity and code reuse, which further enhances maintainability [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Sample Document\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programming language with a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse.\n\nMachine Learning",
+          "doc_id": "5e1b9747-5822-4f85-914a-aea325ee2617",
+          "score": 0.6309114694595337,
+          "title": "Unknown"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programming language with a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse.\n\nMachine Learning",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.4396573305130005,
+          "title": "Unknown"
+        },
+        {
+          "content": "Software Engineering Best Practices\n\nClean Code Principles\n\nWriting maintainable, readable code is essential for long-term project success. Key principles include:\n\nSingle Responsibility Principle\n\nEach class or function should have one reason to change. This promotes modularity and makes code easier to understand and modify.\n\nDRY (Don't Repeat Yourself)",
+          "doc_id": "99210599-29df-42c1-9ada-ee8270b365ea",
+          "score": 0.00016449697432108223,
+          "title": "Unknown"
+        },
+        {
+          "content": "DRY (Don't Repeat Yourself)\n\nEliminate code duplication by extracting common functionality into reusable components. This reduces maintenance burden and potential for bugs.\n\nSOLID Principles\n\nS: Single Responsibility Principle\n\nO: Open/Closed Principle (open for extension, closed for modification)\n\nL: Liskov Substitution Principle\n\nI: Interface Segregation Principle\n\nD: Dependency Inversion Principle\n\nDesign Patterns\n\nCommon solutions to recurring design problems:\n\nCreational Patterns",
+          "doc_id": "ce48a2cc-c382-4433-bfbf-373be79f987c",
+          "score": 2.4315910195582546e-05,
+          "title": "Unknown"
+        },
+        {
+          "content": "Interpretability and Explainability\n\nUnderstanding model decisions through various techniques:\n\nSHAP values: Unified framework for feature importance\n\nLIME: Local interpretable model-agnostic explanations\n\nAttention visualization: Understanding what models focus on\n\nGradient-based methods: Using gradients to identify important features\n\nDistributed Training\n\nScaling machine learning to large datasets and models:\n\nData parallelism: Distributing data across multiple GPUs/nodes",
+          "doc_id": "f713ee86-b31d-4154-b4c3-0109d3f00e86",
+          "score": 1.8208535038866103e-05,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 10103.103876113892,
+      "token_usage": 719,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:05:58.923749",
+      "error": null
+    },
+    {
+      "question_id": 6,
+      "question": "How is machine learning related to artificial intelligence?",
+      "answer": "Machine learning is a subset of artificial intelligence (AI) that enables systems to automatically learn and improve from experience without being explicitly programmed. It focuses on developing computer programs that can access data and learn from it independently. This relationship indicates that while all machine learning is part of AI, not all AI involves machine learning [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.\n\nArtificial Intelligence",
+          "doc_id": "18bf5545-5d9d-4eee-a311-46f974faeba6",
+          "score": 0.9914060831069946,
+          "title": "Unknown"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.\n\nArtificial Intelligence",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.9914060831069946,
+          "title": "Unknown"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.\n\nData Science",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.7100445032119751,
+          "title": "Unknown"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.\n\nData Science",
+          "doc_id": "7a4df2b3-2259-4a3c-b4e8-b91569631f5f",
+          "score": 0.7100445032119751,
+          "title": "Unknown"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and apply knowledge and actionable insights from data across a broad range of application domains.\n\nConclusion\n\nThis document covers multiple topics related to programming, AI, and data science, making it ideal for testing semantic search capabilities.",
+          "doc_id": "43caf06b-c8ba-44f9-98da-0d5b7000792f",
+          "score": 0.008011682890355587,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 8624.74799156189,
+      "token_usage": 619,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:06:07.548607",
+      "error": null
+    },
+    {
+      "question_id": 7,
+      "question": "What programming features does Python support?",
+      "answer": "Python supports modules and packages, which encourage program modularity and code reuse. This is part of its design that emphasizes simplicity and readability, ultimately reducing the cost of program maintenance [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Sample Document\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programming language with a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse.\n\nMachine Learning",
+          "doc_id": "5e1b9747-5822-4f85-914a-aea325ee2617",
+          "score": 0.9548175930976868,
+          "title": "Unknown"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programming language with a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse.\n\nMachine Learning",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.9009333848953247,
+          "title": "Unknown"
+        },
+        {
+          "content": "Rolling updates: Replace instances incrementally\n\nFeature flags: Toggle features without code changes\n\nCode Review Process\n\nSystematic approach to maintaining code quality:\n\nReview Guidelines\n\nFocus on logic, not style (use automated formatting)\n\nCheck for security vulnerabilities\n\nEnsure adequate test coverage\n\nVerify documentation completeness\n\nReview Tools and Techniques\n\nPull request workflows\n\nPair programming\n\nAutomated code analysis\n\nReview checklists\n\nPerformance Optimization",
+          "doc_id": "a499b873-5b75-4c89-8f4b-e7348b1e78a8",
+          "score": 0.009336230345070362,
+          "title": "Unknown"
+        },
+        {
+          "content": "Pair programming\n\nAutomated code analysis\n\nReview checklists\n\nPerformance Optimization\n\nStrategies for improving application performance:\n\nProfiling and Monitoring\n\nApplication Performance Monitoring (APM): Track metrics in production\n\nProfiling tools: Identify performance bottlenecks\n\nLoad testing: Simulate production traffic patterns\n\nOptimization Techniques\n\nDatabase optimization: Query optimization, indexing strategies\n\nCaching strategies: In-memory, distributed, CDN caching",
+          "doc_id": "07e22bf4-f830-4ad4-8b87-e473e1ecb722",
+          "score": 0.0038822961505502462,
+          "title": "Unknown"
+        },
+        {
+          "content": "Interpretability and Explainability\n\nUnderstanding model decisions through various techniques:\n\nSHAP values: Unified framework for feature importance\n\nLIME: Local interpretable model-agnostic explanations\n\nAttention visualization: Understanding what models focus on\n\nGradient-based methods: Using gradients to identify important features\n\nDistributed Training\n\nScaling machine learning to large datasets and models:\n\nData parallelism: Distributing data across multiple GPUs/nodes",
+          "doc_id": "f713ee86-b31d-4154-b4c3-0109d3f00e86",
+          "score": 0.0024130300153046846,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 8830.761909484863,
+      "token_usage": 699,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:06:16.379476",
+      "error": null
+    },
+    {
+      "question_id": 8,
+      "question": "What makes machine learning different from traditional programming?",
+      "answer": "Machine learning differs from traditional programming in that it allows systems to automatically learn and improve from experience without being explicitly programmed for each specific task. While traditional programming involves developers writing specific instructions for a computer to follow, machine learning focuses on creating programs that can access data and learn for themselves from that data. This enables machine learning systems to adapt and improve their performance over time based on the data they encounter [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.\n\nArtificial Intelligence",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.4955242872238159,
+          "title": "Unknown"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.\n\nArtificial Intelligence",
+          "doc_id": "18bf5545-5d9d-4eee-a311-46f974faeba6",
+          "score": 0.4955242872238159,
+          "title": "Unknown"
+        },
+        {
+          "content": "Advanced Machine Learning Concepts\n\nDeep Learning Architecture\n\nDeep learning utilizes neural networks with multiple hidden layers to model complex patterns in data. Convolutional Neural Networks (CNNs) excel at image recognition tasks by learning hierarchical features through convolution operations. Recurrent Neural Networks (RNNs) and their variants like LSTM and GRU are designed to handle sequential data by maintaining memory states.\n\nTransformer Architecture",
+          "doc_id": "994a8b0f-bbf9-4da6-a266-1845c3f1a4a8",
+          "score": 0.006336933933198452,
+          "title": "Unknown"
+        },
+        {
+          "content": "Interpretability and Explainability\n\nUnderstanding model decisions through various techniques:\n\nSHAP values: Unified framework for feature importance\n\nLIME: Local interpretable model-agnostic explanations\n\nAttention visualization: Understanding what models focus on\n\nGradient-based methods: Using gradients to identify important features\n\nDistributed Training\n\nScaling machine learning to large datasets and models:\n\nData parallelism: Distributing data across multiple GPUs/nodes",
+          "doc_id": "f713ee86-b31d-4154-b4c3-0109d3f00e86",
+          "score": 0.004338264465332031,
+          "title": "Unknown"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and apply knowledge and actionable insights from data across a broad range of application domains.\n\nConclusion\n\nThis document covers multiple topics related to programming, AI, and data science, making it ideal for testing semantic search capabilities.",
+          "doc_id": "43caf06b-c8ba-44f9-98da-0d5b7000792f",
+          "score": 0.0021673927549272776,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 9401.539087295532,
+      "token_usage": 687,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:06:25.781083",
+      "error": null
+    },
+    {
+      "question_id": 9,
+      "question": "What types of data does data science work with?",
+      "answer": "The context documents provided do not include information about the types of data that data science works with. Therefore, I cannot answer your question based on the given information.",
+      "sources": [
+        {
+          "content": "Sample Document\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programming language with a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse.\n\nMachine Learning",
+          "doc_id": "5e1b9747-5822-4f85-914a-aea325ee2617",
+          "score": 0.0008565467433072627,
+          "title": "Unknown"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programming language with a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse.\n\nMachine Learning",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.0006260733352974057,
+          "title": "Unknown"
+        },
+        {
+          "content": "Regular review and updates\n\nVersion control for documentation\n\nAgile Development Methodologies\n\nIterative development approaches:\n\nScrum Framework\n\nSprints: Time-boxed development iterations\n\nCeremonies: Sprint planning, daily standups, retrospectives\n\nRoles: Product owner, scrum master, development team\n\nArtifacts: Product backlog, sprint backlog, increment\n\nKanban Method\n\nVisual workflow: Board showing work states\n\nWork-in-progress limits: Constrain concurrent work",
+          "doc_id": "811be9c0-447c-4d1b-a2bd-980efecacb85",
+          "score": 0.00037301905103959143,
+          "title": "Unknown"
+        },
+        {
+          "content": "Feature extraction: Freeze pre-trained layers and train only final layers\n\nFine-tuning: Unfreeze some or all layers and train with lower learning rates\n\nFew-shot learning: Adapt models with minimal training examples\n\nReinforcement Learning\n\nReinforcement learning trains agents to make decisions through interaction with an environment. Key concepts include:\n\nQ-Learning: Learning action-value functions to determine optimal policies",
+          "doc_id": "dfaf3fce-7f79-4fa6-b7a4-82076e2e52cb",
+          "score": 0.0003667489218059927,
+          "title": "Unknown"
+        },
+        {
+          "content": "Maintaining comprehensive project documentation:\n\nDocumentation Types\n\nAPI documentation: Clear interface specifications\n\nArchitecture documentation: System design and decisions\n\nUser documentation: Guides and tutorials\n\nRunbooks: Operational procedures and troubleshooting\n\nDocumentation Best Practices\n\nKeep documentation close to code\n\nUse automated documentation generation\n\nRegular review and updates\n\nVersion control for documentation\n\nAgile Development Methodologies",
+          "doc_id": "0c8ee27b-505b-4d29-979b-05d1201c7651",
+          "score": 0.00017266784561797976,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 8955.230951309204,
+      "token_usage": 688,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:06:34.736402",
+      "error": null
+    },
+    {
+      "question_id": 10,
+      "question": "What human-like traits can AI systems exhibit?",
+      "answer": "AI systems can exhibit traits associated with human intelligence, such as learning and problem-solving. These systems are programmed to think like humans and mimic their actions, allowing them to simulate human cognitive processes [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.\n\nData Science",
+          "doc_id": "7a4df2b3-2259-4a3c-b4e8-b91569631f5f",
+          "score": 0.9721782207489014,
+          "title": "Unknown"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.\n\nData Science",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.9721782207489014,
+          "title": "Unknown"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.\n\nArtificial Intelligence",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.007641016971319914,
+          "title": "Unknown"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.\n\nArtificial Intelligence",
+          "doc_id": "18bf5545-5d9d-4eee-a311-46f974faeba6",
+          "score": 0.007641016971319914,
+          "title": "Unknown"
+        },
+        {
+          "content": "Advanced Machine Learning Concepts\n\nDeep Learning Architecture\n\nDeep learning utilizes neural networks with multiple hidden layers to model complex patterns in data. Convolutional Neural Networks (CNNs) excel at image recognition tasks by learning hierarchical features through convolution operations. Recurrent Neural Networks (RNNs) and their variants like LSTM and GRU are designed to handle sequential data by maintaining memory states.\n\nTransformer Architecture",
+          "doc_id": "994a8b0f-bbf9-4da6-a266-1845c3f1a4a8",
+          "score": 0.00048462062841281295,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 8249.282836914062,
+      "token_usage": 603,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:06:42.985773",
+      "error": null
+    },
+    {
+      "question_id": 11,
+      "question": "How does Python reduce maintenance costs?",
+      "answer": "Python reduces maintenance costs primarily through its simple, easy-to-learn syntax that emphasizes readability. This clarity in code helps developers understand and modify it more easily, thereby lowering the overall cost associated with program maintenance. Furthermore, Python supports modules and packages, which encourages program modularity and code reuse, contributing to reduced duplication of effort in maintenance tasks [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Sample Document\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programming language with a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse.\n\nMachine Learning",
+          "doc_id": "5e1b9747-5822-4f85-914a-aea325ee2617",
+          "score": 0.9683550596237183,
+          "title": "Unknown"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programming language with a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse.\n\nMachine Learning",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.9203046560287476,
+          "title": "Unknown"
+        },
+        {
+          "content": "DRY (Don't Repeat Yourself)\n\nEliminate code duplication by extracting common functionality into reusable components. This reduces maintenance burden and potential for bugs.\n\nSOLID Principles\n\nS: Single Responsibility Principle\n\nO: Open/Closed Principle (open for extension, closed for modification)\n\nL: Liskov Substitution Principle\n\nI: Interface Segregation Principle\n\nD: Dependency Inversion Principle\n\nDesign Patterns\n\nCommon solutions to recurring design problems:\n\nCreational Patterns",
+          "doc_id": "ce48a2cc-c382-4433-bfbf-373be79f987c",
+          "score": 0.015270065516233444,
+          "title": "Unknown"
+        },
+        {
+          "content": "Rolling updates: Replace instances incrementally\n\nFeature flags: Toggle features without code changes\n\nCode Review Process\n\nSystematic approach to maintaining code quality:\n\nReview Guidelines\n\nFocus on logic, not style (use automated formatting)\n\nCheck for security vulnerabilities\n\nEnsure adequate test coverage\n\nVerify documentation completeness\n\nReview Tools and Techniques\n\nPull request workflows\n\nPair programming\n\nAutomated code analysis\n\nReview checklists\n\nPerformance Optimization",
+          "doc_id": "a499b873-5b75-4c89-8f4b-e7348b1e78a8",
+          "score": 0.00015821550914552063,
+          "title": "Unknown"
+        },
+        {
+          "content": "Software Engineering Best Practices\n\nClean Code Principles\n\nWriting maintainable, readable code is essential for long-term project success. Key principles include:\n\nSingle Responsibility Principle\n\nEach class or function should have one reason to change. This promotes modularity and makes code easier to understand and modify.\n\nDRY (Don't Repeat Yourself)",
+          "doc_id": "99210599-29df-42c1-9ada-ee8270b365ea",
+          "score": 6.470428343163803e-05,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 9829.559803009033,
+      "token_usage": 727,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:06:52.815418",
+      "error": null
+    },
+    {
+      "question_id": 12,
+      "question": "What is the goal of data science?",
+      "answer": "The goal of data science is to extract knowledge and insights from both structured and unstructured data using scientific methods, processes, algorithms, and systems. It aims to apply this knowledge and actionable insights across a broad range of application domains [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and apply knowledge and actionable insights from data across a broad range of application domains.\n\nConclusion\n\nThis document covers multiple topics related to programming, AI, and data science, making it ideal for testing semantic search capabilities.",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.9293308854103088,
+          "title": "Unknown"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and apply knowledge and actionable insights from data across a broad range of application domains.\n\nConclusion\n\nThis document covers multiple topics related to programming, AI, and data science, making it ideal for testing semantic search capabilities.",
+          "doc_id": "43caf06b-c8ba-44f9-98da-0d5b7000792f",
+          "score": 0.9293308854103088,
+          "title": "Unknown"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.\n\nData Science",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.026813112199306488,
+          "title": "Unknown"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.\n\nData Science",
+          "doc_id": "7a4df2b3-2259-4a3c-b4e8-b91569631f5f",
+          "score": 0.026813112199306488,
+          "title": "Unknown"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.\n\nArtificial Intelligence",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.0013370640808716416,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 6986.320734024048,
+      "token_usage": 620,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:06:59.801871",
+      "error": null
+    },
+    {
+      "question_id": 13,
+      "question": "How do machines simulate human intelligence in AI?",
+      "answer": "Machines simulate human intelligence in AI by being programmed to think like humans and mimic their actions. This includes exhibiting traits associated with human minds, such as learning and problem-solving capabilities. The simulation involves creating systems that can process information and make decisions similar to the way humans do, effectively reflecting aspects of human cognitive functions [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.\n\nData Science",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.984419047832489,
+          "title": "Unknown"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.\n\nData Science",
+          "doc_id": "7a4df2b3-2259-4a3c-b4e8-b91569631f5f",
+          "score": 0.984419047832489,
+          "title": "Unknown"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.\n\nArtificial Intelligence",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.07896197587251663,
+          "title": "Unknown"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.\n\nArtificial Intelligence",
+          "doc_id": "18bf5545-5d9d-4eee-a311-46f974faeba6",
+          "score": 0.07896197587251663,
+          "title": "Unknown"
+        },
+        {
+          "content": "Transformer Architecture\n\nThe transformer architecture, introduced in \"Attention is All You Need,\" revolutionized natural language processing. Key components include:\n\nMulti-Head Attention\n\nAllows the model to focus on different parts of the input simultaneously\n\nComputes attention weights for all input positions in parallel\n\nEnables modeling of complex relationships between tokens\n\nPositional Encoding\n\nProvides position information since transformers lack inherent sequential processing",
+          "doc_id": "7e280654-948d-40cf-9339-f7bb566838ae",
+          "score": 0.00011918303061975166,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 10094.497919082642,
+      "token_usage": 626,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:07:09.896485",
+      "error": null
+    },
+    {
+      "question_id": 14,
+      "question": "What makes data science interdisciplinary?",
+      "answer": "Data science is considered interdisciplinary because it utilizes scientific methods, processes, algorithms, and systems to extract knowledge and insights from both structured and unstructured data. This approach allows for the application of knowledge and actionable insights across a broad range of application domains, indicating that it integrates concepts, techniques, and tools from various fields such as statistics, computer science, and domain-specific knowledge [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and apply knowledge and actionable insights from data across a broad range of application domains.\n\nConclusion\n\nThis document covers multiple topics related to programming, AI, and data science, making it ideal for testing semantic search capabilities.",
+          "doc_id": "43caf06b-c8ba-44f9-98da-0d5b7000792f",
+          "score": 0.987883985042572,
+          "title": "Unknown"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and apply knowledge and actionable insights from data across a broad range of application domains.\n\nConclusion\n\nThis document covers multiple topics related to programming, AI, and data science, making it ideal for testing semantic search capabilities.",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.987883985042572,
+          "title": "Unknown"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.\n\nData Science",
+          "doc_id": "7a4df2b3-2259-4a3c-b4e8-b91569631f5f",
+          "score": 0.0018132333643734455,
+          "title": "Unknown"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be applied to any machine that exhibits traits associated with a human mind such as learning and problem-solving.\n\nData Science",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.0018132333643734455,
+          "title": "Unknown"
+        },
+        {
+          "content": "Interpretability and Explainability\n\nUnderstanding model decisions through various techniques:\n\nSHAP values: Unified framework for feature importance\n\nLIME: Local interpretable model-agnostic explanations\n\nAttention visualization: Understanding what models focus on\n\nGradient-based methods: Using gradients to identify important features\n\nDistributed Training\n\nScaling machine learning to large datasets and models:\n\nData parallelism: Distributing data across multiple GPUs/nodes",
+          "doc_id": "f713ee86-b31d-4154-b4c3-0109d3f00e86",
+          "score": 0.0001849283726187423,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 8594.14291381836,
+      "token_usage": 673,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:07:18.490726",
+      "error": null
+    },
+    {
+      "question_id": 15,
+      "question": "How does machine learning improve over time?",
+      "answer": "Machine learning improves over time by allowing systems to automatically learn from experience without being explicitly programmed. This capability enables the development of computer programs that can access data and utilize it to learn for themselves, effectively enhancing their performance and accuracy over time as they are exposed to more data and experiences [Source: doc_name, chunk_index]. \n\nHowever, the provided context does not detail specific mechanisms or methods by which machine learning systems improve over time beyond the general concept of learning from experience.",
+      "sources": [
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.\n\nArtificial Intelligence",
+          "doc_id": "18bf5545-5d9d-4eee-a311-46f974faeba6",
+          "score": 0.4293409287929535,
+          "title": "Unknown"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it to learn for themselves.\n\nArtificial Intelligence",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.4293409287929535,
+          "title": "Unknown"
+        },
+        {
+          "content": "Stratified sampling: Maintaining class distribution across folds\n\nTime series validation: Using temporal splits for time-dependent data\n\nRegularization Techniques\n\nPreventing overfitting through various regularization methods:\n\nL1/L2 regularization: Adding penalty terms to loss functions\n\nDropout: Randomly deactivating neurons during training\n\nBatch normalization: Normalizing inputs to each layer\n\nData augmentation: Increasing training data through transformations\n\nEnsemble Methods",
+          "doc_id": "4747d973-5bf1-4af1-8535-194abcdda6dd",
+          "score": 0.0033340740483254194,
+          "title": "Unknown"
+        },
+        {
+          "content": "Advanced Machine Learning Concepts\n\nDeep Learning Architecture\n\nDeep learning utilizes neural networks with multiple hidden layers to model complex patterns in data. Convolutional Neural Networks (CNNs) excel at image recognition tasks by learning hierarchical features through convolution operations. Recurrent Neural Networks (RNNs) and their variants like LSTM and GRU are designed to handle sequential data by maintaining memory states.\n\nTransformer Architecture",
+          "doc_id": "994a8b0f-bbf9-4da6-a266-1845c3f1a4a8",
+          "score": 0.0028767334297299385,
+          "title": "Unknown"
+        },
+        {
+          "content": "Hyperparameter Optimization\n\nSystematic approaches to finding optimal model configurations:\n\nGrid search: Exhaustive search over parameter combinations\n\nRandom search: Sampling parameters from probability distributions\n\nBayesian optimization: Using probabilistic models to guide search\n\nEvolutionary algorithms: Population-based optimization methods\n\nInterpretability and Explainability\n\nUnderstanding model decisions through various techniques:",
+          "doc_id": "758376bc-d031-437c-be09-9ad4d0d07bf4",
+          "score": 0.00017851368465926498,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 8917.74606704712,
+      "token_usage": 694,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:07:27.408574",
+      "error": null
+    },
+    {
+      "question_id": 16,
+      "question": "What is the main advantage of Python's design?",
+      "answer": "The main advantage of Python's design is its simple, easy-to-learn syntax that emphasizes readability. This focus on readability reduces the cost of program maintenance and supports modularity and code reuse through modules and packages. These features make Python a high-level, interpreted programming language suitable for various programming tasks [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Sample Document\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programming language with a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse.\n\nMachine Learning",
+          "doc_id": "5e1b9747-5822-4f85-914a-aea325ee2617",
+          "score": 0.047230642288923264,
+          "title": "Unknown"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programming language with a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse.\n\nMachine Learning",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.027279125526547432,
+          "title": "Unknown"
+        },
+        {
+          "content": "Design Patterns\n\nCommon solutions to recurring design problems:\n\nCreational Patterns\n\nSingleton: Ensures only one instance of a class exists\n\nFactory: Creates objects without specifying exact classes\n\nBuilder: Constructs complex objects step by step\n\nStructural Patterns\n\nAdapter: Allows incompatible interfaces to work together\n\nDecorator: Adds behavior to objects dynamically\n\nFacade: Provides simplified interface to complex subsystems\n\nBehavioral Patterns",
+          "doc_id": "68ecbc1c-ad12-41d8-9599-ad51247318dd",
+          "score": 0.00037073364364914596,
+          "title": "Unknown"
+        },
+        {
+          "content": "DRY (Don't Repeat Yourself)\n\nEliminate code duplication by extracting common functionality into reusable components. This reduces maintenance burden and potential for bugs.\n\nSOLID Principles\n\nS: Single Responsibility Principle\n\nO: Open/Closed Principle (open for extension, closed for modification)\n\nL: Liskov Substitution Principle\n\nI: Interface Segregation Principle\n\nD: Dependency Inversion Principle\n\nDesign Patterns\n\nCommon solutions to recurring design problems:\n\nCreational Patterns",
+          "doc_id": "ce48a2cc-c382-4433-bfbf-373be79f987c",
+          "score": 0.00024303115787915885,
+          "title": "Unknown"
+        },
+        {
+          "content": "Software Engineering Best Practices\n\nClean Code Principles\n\nWriting maintainable, readable code is essential for long-term project success. Key principles include:\n\nSingle Responsibility Principle\n\nEach class or function should have one reason to change. This promotes modularity and makes code easier to understand and modify.\n\nDRY (Don't Repeat Yourself)",
+          "doc_id": "99210599-29df-42c1-9ada-ee8270b365ea",
+          "score": 7.132046448532492e-05,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 10266.130208969116,
+      "token_usage": 718,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:07:37.674828",
+      "error": null
+    },
+    {
+      "question_id": 17,
+      "question": "What topics are covered in this document collection?",
+      "answer": "The document collection covers several topics across different fields:\n\n1. **Data Science**: Defined as an interdisciplinary field that utilizes scientific methods, processes, algorithms, and systems to extract knowledge from both structured and unstructured data. It also emphasizes applying insights across various application domains. This topic is discussed in detail in Document 1 and Document 2 [Source: doc_name, chunk_index].\n\n2. **Software Engineering Practices**: This includes various security concerns such as broken access control, security misconfiguration, cross-site scripting (XSS), and secure coding practices among others. These topics can be found in Document 3 [Source: software_engineering_practices.md, chunk_index].\n\n3. **Python Programming**: The documents provide an overview of Python as a high-level, interpreted programming language, highlighting its simplicity, readability, and support for modularity and code reuse. This topic appears in Document 4 and Document 5 [Source: sample_document.md, chunk_index].\n\n4. **Machine Learning**: While specific content is not provided in the segments, it is mentioned as a topic of interest within the documents [Source: sample_document.md, chunk_index].\n\nOverall, the collection addresses data science, software engineering practices, Python programming, and mentions machine learning.",
+      "sources": [
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and apply knowledge and actionable insights from data across a broad range of application domains.\n\nConclusion\n\nThis document covers multiple topics related to programming, AI, and data science, making it ideal for testing semantic search capabilities.",
+          "doc_id": "43caf06b-c8ba-44f9-98da-0d5b7000792f",
+          "score": 0.8625500202178955,
+          "title": "Unknown"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and apply knowledge and actionable insights from data across a broad range of application domains.\n\nConclusion\n\nThis document covers multiple topics related to programming, AI, and data science, making it ideal for testing semantic search capabilities.",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.8625500202178955,
+          "title": "Unknown"
+        },
+        {
+          "content": "Broken access control\n\nSecurity misconfiguration\n\nCross-site scripting (XSS)\n\nInsecure deserialization\n\nKnown vulnerabilities in components\n\nInsufficient logging and monitoring\n\nSecure Coding Practices\n\nInput validation and sanitization\n\nPrinciple of least privilege\n\nDefense in depth\n\nSecure communication (HTTPS, TLS)\n\nCryptographic best practices\n\nDocumentation and Knowledge Management\n\nMaintaining comprehensive project documentation:\n\nDocumentation Types",
+          "doc_id": "c1d68e98-2fab-4ec7-888f-bf82fdebd9c4",
+          "score": 0.009030143730342388,
+          "title": "Unknown"
+        },
+        {
+          "content": "Sample Document\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programming language with a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse.\n\nMachine Learning",
+          "doc_id": "5e1b9747-5822-4f85-914a-aea325ee2617",
+          "score": 0.0037221754901111126,
+          "title": "Unknown"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programming language with a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse.\n\nMachine Learning",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.0022958575282245874,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 14326.092004776001,
+      "token_usage": 888,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:07:52.001019",
+      "error": null
+    },
+    {
+      "question_id": 18,
+      "question": "How does the document describe testing semantic search?",
+      "answer": "The document describes testing semantic search through its coverage of multiple topics related to programming, AI, and data science. It states that the document is ideal for testing semantic search capabilities, indicating that it contains relevant information that can be leveraged to evaluate the effectiveness of such search systems [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and apply knowledge and actionable insights from data across a broad range of application domains.\n\nConclusion\n\nThis document covers multiple topics related to programming, AI, and data science, making it ideal for testing semantic search capabilities.",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.8772865533828735,
+          "title": "Unknown"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and apply knowledge and actionable insights from data across a broad range of application domains.\n\nConclusion\n\nThis document covers multiple topics related to programming, AI, and data science, making it ideal for testing semantic search capabilities.",
+          "doc_id": "43caf06b-c8ba-44f9-98da-0d5b7000792f",
+          "score": 0.8772865533828735,
+          "title": "Unknown"
+        },
+        {
+          "content": "Sample Document\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programming language with a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse.\n\nMachine Learning",
+          "doc_id": "5e1b9747-5822-4f85-914a-aea325ee2617",
+          "score": 0.003148513613268733,
+          "title": "Unknown"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programming language with a simple, easy-to-learn syntax that emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse.\n\nMachine Learning",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.0021024993620812893,
+          "title": "Unknown"
+        },
+        {
+          "content": "Use feature branches for development\n\nRebase vs merge strategies\n\nSemantic commit conventions\n\nBranching Strategies\n\nGit Flow: Feature branches, develop, release, hotfix\n\nGitHub Flow: Simple feature branch workflow\n\nGitLab Flow: Environment-based branching\n\nTesting Strategies\n\nComprehensive testing ensures code quality and reliability:\n\nTest Pyramid\n\nUnit tests: Test individual components in isolation\n\nIntegration tests: Test component interactions",
+          "doc_id": "33d8924e-1654-482c-8a99-37c9b942c85a",
+          "score": 0.0008311495184898376,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 10780.571937561035,
+      "token_usage": 700,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:08:02.781681",
+      "error": null
+    },
+    {
+      "question_id": 19,
+      "question": "What are the key differences between transformer architectures and traditional RNN/LSTM models for sequence processing?",
+      "answer": "The key differences between transformer architectures and traditional RNN/LSTM models for sequence processing can be summarized as follows:\n\n1. **Processing Mechanism**:\n   - Transformers utilize a mechanism called multi-head attention, which allows them to focus on different parts of the input simultaneously. This enables the modeling of complex relationships between tokens by computing attention weights for all input positions in parallel [Source: doc_name, chunk_index].\n   - In contrast, RNNs and their variants like LSTM and GRU process sequences in a sequential manner, maintaining memory states to handle sequential data. This can lead to difficulties in capturing long-range dependencies effectively due to their inherent sequential processing [Source: doc_name, chunk_index].\n\n2. **Positional Information**:\n   - Transformers incorporate positional encoding to provide position information to the model, compensating for their lack of inherent sequential processing. This allows them to understand the order of the tokens without relying on sequential processing [Source: doc_name, chunk_index].\n   - Traditional RNNs and LSTMs are inherently sequential and maintain the order of inputs through their architecture, which can make them less efficient for long sequences compared to the parallelizable nature of transformers.\n\nOverall, transformers offer more efficient and effective ways to process sequences by leveraging attention mechanisms and parallel processing, while RNNs and LSTMs rely on sequential processing and memory states.",
+      "sources": [
+        {
+          "content": "Transformer Architecture\n\nThe transformer architecture, introduced in \"Attention is All You Need,\" revolutionized natural language processing. Key components include:\n\nMulti-Head Attention\n\nAllows the model to focus on different parts of the input simultaneously\n\nComputes attention weights for all input positions in parallel\n\nEnables modeling of complex relationships between tokens\n\nPositional Encoding\n\nProvides position information since transformers lack inherent sequential processing",
+          "doc_id": "7e280654-948d-40cf-9339-f7bb566838ae",
+          "score": 0.8766502737998962,
+          "title": "Unknown"
+        },
+        {
+          "content": "Advanced Machine Learning Concepts\n\nDeep Learning Architecture\n\nDeep learning utilizes neural networks with multiple hidden layers to model complex patterns in data. Convolutional Neural Networks (CNNs) excel at image recognition tasks by learning hierarchical features through convolution operations. Recurrent Neural Networks (RNNs) and their variants like LSTM and GRU are designed to handle sequential data by maintaining memory states.\n\nTransformer Architecture",
+          "doc_id": "994a8b0f-bbf9-4da6-a266-1845c3f1a4a8",
+          "score": 0.5037788152694702,
+          "title": "Unknown"
+        },
+        {
+          "content": "Data parallelism: Distributing data across multiple GPUs/nodes\n\nModel parallelism: Splitting large models across hardware\n\nGradient synchronization: Coordinating updates across distributed workers\n\nFederated learning: Training models across decentralized data sources",
+          "doc_id": "16dbd1b6-9822-4c80-ae05-c075935e96fb",
+          "score": 0.0004901125794276595,
+          "title": "Unknown"
+        },
+        {
+          "content": "Interpretability and Explainability\n\nUnderstanding model decisions through various techniques:\n\nSHAP values: Unified framework for feature importance\n\nLIME: Local interpretable model-agnostic explanations\n\nAttention visualization: Understanding what models focus on\n\nGradient-based methods: Using gradients to identify important features\n\nDistributed Training\n\nScaling machine learning to large datasets and models:\n\nData parallelism: Distributing data across multiple GPUs/nodes",
+          "doc_id": "f713ee86-b31d-4154-b4c3-0109d3f00e86",
+          "score": 0.0003389632620383054,
+          "title": "Unknown"
+        },
+        {
+          "content": "Feature extraction: Freeze pre-trained layers and train only final layers\n\nFine-tuning: Unfreeze some or all layers and train with lower learning rates\n\nFew-shot learning: Adapt models with minimal training examples\n\nReinforcement Learning\n\nReinforcement learning trains agents to make decisions through interaction with an environment. Key concepts include:\n\nQ-Learning: Learning action-value functions to determine optimal policies",
+          "doc_id": "dfaf3fce-7f79-4fa6-b7a4-82076e2e52cb",
+          "score": 0.00018035493849311024,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 15641.977787017822,
+      "token_usage": 907,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:08:18.423779",
+      "error": null
+    },
+    {
+      "question_id": 20,
+      "question": "How would you implement a CI/CD pipeline that incorporates both security scanning and performance testing for a microservices architecture?",
+      "answer": "To implement a CI/CD pipeline that incorporates both security scanning and performance testing for a microservices architecture, you can follow these steps based on the context provided:\n\n1. **CI Pipeline Components**:\n   - **Build Automation**: Start by compiling and packaging your microservices code.\n   - **Automated Testing**: Include integration tests to ensure that component interactions work correctly and end-to-end tests to validate complete user workflows.\n   - **Code Quality Checks**: Integrate static analysis, linting, and security scans into your pipeline to identify vulnerabilities early in the development process [Source: doc_name, chunk_index].\n\n2. **Performance Testing**:\n   - Implement performance optimization strategies. This includes:\n     - **Profiling and Monitoring**: Use Application Performance Monitoring (APM) to track metrics in production and identify performance bottlenecks with profiling tools.\n     - **Load Testing**: Simulate production traffic patterns to evaluate how your microservices perform under stress [Source: doc_name, chunk_index].\n\n3. **Deployment Strategies**:\n   - Utilize deployment strategies that support microservices. For instance, you can implement **blue-green deployments** or **canary releases** to gradually roll out updates while minimizing downtime and risk [Source: doc_name, chunk_index].\n\n4. **Continuous Improvement**:\n   - Regularly assess and optimize your CI/CD processes to ensure they remain effective and secure as your application evolves. This includes refining your performance tests and security checks based on new insights and challenges [Source: doc_name, chunk_index].\n\nBy following these steps, you can create a robust CI/CD pipeline that effectively incorporates security scanning and performance testing tailored for a microservices architecture.",
+      "sources": [
+        {
+          "content": "Automated pipelines for building, testing, and deploying software:\n\nCI Pipeline Components\n\nBuild automation: Compile and package code\n\nAutomated testing: Run test suites on every commit\n\nCode quality checks: Static analysis, linting, security scans\n\nArtifact generation: Create deployable packages\n\nDeployment Strategies\n\nBlue-green deployment: Maintain two identical environments\n\nCanary releases: Gradual rollout to subset of users\n\nRolling updates: Replace instances incrementally",
+          "doc_id": "51ce1058-ff73-45a4-9df0-e5ab02b8d7fe",
+          "score": 0.1297753006219864,
+          "title": "Unknown"
+        },
+        {
+          "content": "Integration tests: Test component interactions\n\nEnd-to-end tests: Test complete user workflows\n\nTest-Driven Development (TDD)\n\nWrite failing test\n\nWrite minimal code to pass\n\nRefactor while keeping tests green\n\nMocking and Stubbing\n\nIsolate units under test by replacing dependencies with controlled implementations.\n\nContinuous Integration/Continuous Deployment (CI/CD)\n\nAutomated pipelines for building, testing, and deploying software:\n\nCI Pipeline Components",
+          "doc_id": "4efa6a24-4ebd-4949-84ee-c9562276737b",
+          "score": 0.028752973303198814,
+          "title": "Unknown"
+        },
+        {
+          "content": "Visual workflow: Board showing work states\n\nWork-in-progress limits: Constrain concurrent work\n\nContinuous improvement: Regular process optimization\n\nMicroservices Architecture\n\nDesigning distributed systems as collections of small services:\n\nBenefits\n\nIndependent deployment and scaling\n\nTechnology diversity\n\nFault isolation\n\nTeam autonomy\n\nChallenges\n\nDistributed system complexity\n\nService discovery and communication\n\nData consistency across services\n\nMonitoring and debugging",
+          "doc_id": "d41f5c15-ab44-472e-bf5f-912ba07b4182",
+          "score": 0.00473029725253582,
+          "title": "Unknown"
+        },
+        {
+          "content": "Pair programming\n\nAutomated code analysis\n\nReview checklists\n\nPerformance Optimization\n\nStrategies for improving application performance:\n\nProfiling and Monitoring\n\nApplication Performance Monitoring (APM): Track metrics in production\n\nProfiling tools: Identify performance bottlenecks\n\nLoad testing: Simulate production traffic patterns\n\nOptimization Techniques\n\nDatabase optimization: Query optimization, indexing strategies\n\nCaching strategies: In-memory, distributed, CDN caching",
+          "doc_id": "07e22bf4-f830-4ad4-8b87-e473e1ecb722",
+          "score": 0.00038919548387639225,
+          "title": "Unknown"
+        },
+        {
+          "content": "Rolling updates: Replace instances incrementally\n\nFeature flags: Toggle features without code changes\n\nCode Review Process\n\nSystematic approach to maintaining code quality:\n\nReview Guidelines\n\nFocus on logic, not style (use automated formatting)\n\nCheck for security vulnerabilities\n\nEnsure adequate test coverage\n\nVerify documentation completeness\n\nReview Tools and Techniques\n\nPull request workflows\n\nPair programming\n\nAutomated code analysis\n\nReview checklists\n\nPerformance Optimization",
+          "doc_id": "a499b873-5b75-4c89-8f4b-e7348b1e78a8",
+          "score": 0.00037211779272183776,
+          "title": "Unknown"
+        }
+      ],
+      "response_time_ms": 16064.18514251709,
+      "token_usage": 1033,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:08:34.488053",
+      "error": null
+    },
+    {
+      "question_id": 21,
+      "question": "Explain how ensemble methods like bagging and boosting work, and when you would choose one over the other in machine learning projects.",
+      "answer": "I cannot provide an answer as there is no context available due to a retrieval error. Please provide the necessary information or context for me to assist you.",
+      "sources": [],
+      "response_time_ms": 16467.32783317566,
+      "token_usage": 208,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "agentic",
+      "evaluation_timestamp": "2025-08-12T16:08:50.955476",
+      "error": null
+    }
+  ]
+}
