@@ -397,7 +397,7 @@ class RAGEvaluator:
     
     async def run_ragas_evaluation(self, 
                                  results: List[EvaluationResult]) -> List[EvaluationResult]:
-        """Run RAGAS evaluation on the results."""
+        """Run RAGAS evaluation on the results with proper configuration and error handling."""
         if not results:
             return results
         
@@ -413,57 +413,196 @@ class RAGEvaluator:
             self.logger.warning("No valid results for RAGAS evaluation")
             return results
         
+        # Load golden QA data to get ground truth answers
+        golden_qa_path = Path(__file__).parent.parent / "golden_qa.json"
+        ground_truths = []
+        
+        try:
+            with open(golden_qa_path, 'r') as f:
+                golden_qa_data = json.load(f)
+            
+            # Map question IDs to expected answers
+            qa_mapping = {q["id"]: q["expected_answer"] for q in golden_qa_data["questions"]}
+            
+            # Create ground truth list matching our results
+            for result in valid_results:
+                ground_truth = qa_mapping.get(result.question_id, "")
+                if not ground_truth:
+                    # Fallback: generate simple expected answer based on question
+                    ground_truth = f"Expected answer for: {result.question}"
+                ground_truths.append(ground_truth)
+                
+        except Exception as e:
+            self.logger.warning(f"Could not load ground truth data: {e}")
+            # Create simple ground truths
+            ground_truths = [f"Expected answer for: {r.question}" for r in valid_results]
+        
         # Prepare data for RAGAS
         questions = [r.question for r in valid_results]
         answers = [r.answer for r in valid_results]
         contexts = [[source["content"] for source in r.sources] for r in valid_results]
         
+        self.logger.info(f"Preparing RAGAS evaluation for {len(valid_results)} questions")
+        self.logger.info(f"Sample data - Question: {questions[0][:50]}...")
+        self.logger.info(f"Sample data - Answer: {answers[0][:50]}...")
+        self.logger.info(f"Sample data - Contexts: {len(contexts[0])} contexts")
+        self.logger.info(f"Sample data - Ground truth: {ground_truths[0][:50]}...")
+        
         try:
-            self.logger.info("Running RAGAS evaluation...")
-            
-            # Try direct evaluation first
+            # Import required RAGAS components with proper error handling
             try:
-                # Create dataset for RAGAS
-                ragas_dataset = Dataset.from_dict({
+                from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+                from ragas.llms import LangchainLLMWrapper
+                from ragas.embeddings import LangchainEmbeddingsWrapper
+                from ragas.run_config import RunConfig
+                
+                self.logger.info("Successfully imported RAGAS components")
+                
+            except ImportError as import_err:
+                self.logger.error(f"Failed to import required RAGAS components: {import_err}")
+                return results
+            
+            # Configure LLM and embeddings with proper error handling
+            try:
+                # Create LLM with explicit configuration
+                llm = ChatOpenAI(
+                    model="gpt-4o-mini",
+                    temperature=0,
+                    max_retries=3,
+                    request_timeout=60
+                )
+                
+                # Create embeddings
+                embeddings = OpenAIEmbeddings(
+                    model="text-embedding-3-small",
+                    max_retries=3,
+                    request_timeout=60
+                )
+                
+                # Wrap for RAGAS
+                evaluator_llm = LangchainLLMWrapper(llm)
+                evaluator_embeddings = LangchainEmbeddingsWrapper(embeddings)
+                
+                self.logger.info("Successfully configured LLM and embeddings for RAGAS")
+                
+            except Exception as config_err:
+                self.logger.error(f"Failed to configure LLM/embeddings: {config_err}")
+                return results
+            
+            # Create metrics with proper configuration
+            try:
+                from ragas.metrics import (
+                    Faithfulness,
+                    AnswerRelevancy, 
+                    ContextPrecision,
+                    ContextRecall
+                )
+                
+                metrics = [
+                    Faithfulness(llm=evaluator_llm),
+                    AnswerRelevancy(llm=evaluator_llm, embeddings=evaluator_embeddings),
+                    ContextPrecision(llm=evaluator_llm),
+                    ContextRecall(llm=evaluator_llm)
+                ]
+                
+                self.logger.info("Successfully created RAGAS metrics")
+                
+            except Exception as metrics_err:
+                self.logger.error(f"Failed to create RAGAS metrics: {metrics_err}")
+                return results
+            
+            # Run RAGAS evaluation with proper dataset structure
+            try:
+                self.logger.info("Creating RAGAS dataset...")
+                
+                # Create dataset with all required fields
+                dataset_dict = {
                     "question": questions,
                     "answer": answers,
-                    "contexts": contexts
-                })
+                    "contexts": contexts,
+                    "ground_truth": ground_truths
+                }
                 
-                # Run RAGAS evaluation
+                ragas_dataset = Dataset.from_dict(dataset_dict)
+                
+                self.logger.info(f"Created dataset with {len(ragas_dataset)} examples")
+                self.logger.info(f"Dataset columns: {ragas_dataset.column_names}")
+                
+                # Configure run settings
+                run_config = RunConfig(
+                    timeout=300,  # 5 minutes timeout
+                    max_retries=2,
+                    max_wait=60
+                )
+                
+                self.logger.info("Starting RAGAS evaluation...")
+                
+                # Run evaluation in executor to avoid event loop issues
                 ragas_result = await asyncio.get_event_loop().run_in_executor(
-                    None, 
+                    None,
                     lambda: evaluate(
                         dataset=ragas_dataset,
-                        metrics=[
-                            faithfulness,
-                            answer_relevancy, 
-                            context_precision,
-                            context_recall
-                        ]
+                        metrics=metrics,
+                        run_config=run_config
                     )
                 )
                 
-                # Update results with RAGAS scores
-                for i, result in enumerate(valid_results):
-                    if i < len(ragas_result):
-                        result.faithfulness_score = ragas_result["faithfulness"][i] if i < len(ragas_result.get("faithfulness", [])) else None
-                        result.answer_relevancy_score = ragas_result["answer_relevancy"][i] if i < len(ragas_result.get("answer_relevancy", [])) else None
-                        result.context_precision_score = ragas_result["context_precision"][i] if i < len(ragas_result.get("context_precision", [])) else None
-                        result.context_recall_score = ragas_result["context_recall"][i] if i < len(ragas_result.get("context_recall", [])) else None
-                
                 self.logger.info("RAGAS evaluation completed successfully")
+                self.logger.info(f"RAGAS result keys: {list(ragas_result.keys()) if hasattr(ragas_result, 'keys') else 'Not a dict'}")
                 
-            except Exception as direct_error:
-                self.logger.warning(f"Direct RAGAS evaluation failed: {direct_error}")
+                # Process and assign results
+                if hasattr(ragas_result, 'to_pandas'):
+                    # Convert to pandas DataFrame for easier access
+                    df = ragas_result.to_pandas()
+                    self.logger.info(f"RAGAS DataFrame shape: {df.shape}")
+                    self.logger.info(f"RAGAS DataFrame columns: {list(df.columns)}")
+                    
+                    # Update results with RAGAS scores
+                    for i, result in enumerate(valid_results):
+                        if i < len(df):
+                            try:
+                                result.faithfulness_score = float(df.iloc[i].get("faithfulness", 0)) if pd.notna(df.iloc[i].get("faithfulness")) else None
+                                result.answer_relevancy_score = float(df.iloc[i].get("answer_relevancy", 0)) if pd.notna(df.iloc[i].get("answer_relevancy")) else None
+                                result.context_precision_score = float(df.iloc[i].get("context_precision", 0)) if pd.notna(df.iloc[i].get("context_precision")) else None
+                                result.context_recall_score = float(df.iloc[i].get("context_recall", 0)) if pd.notna(df.iloc[i].get("context_recall")) else None
+                                
+                                self.logger.debug(f"Question {result.question_id}: faithfulness={result.faithfulness_score}, relevancy={result.answer_relevancy_score}")
+                                
+                            except Exception as score_err:
+                                self.logger.warning(f"Error processing scores for question {result.question_id}: {score_err}")
+                                
+                elif isinstance(ragas_result, dict):
+                    # Handle dictionary format
+                    for i, result in enumerate(valid_results):
+                        if i < len(ragas_result.get("faithfulness", [])):
+                            try:
+                                result.faithfulness_score = float(ragas_result["faithfulness"][i]) if ragas_result.get("faithfulness") and pd.notna(ragas_result["faithfulness"][i]) else None
+                                result.answer_relevancy_score = float(ragas_result["answer_relevancy"][i]) if ragas_result.get("answer_relevancy") and pd.notna(ragas_result["answer_relevancy"][i]) else None
+                                result.context_precision_score = float(ragas_result["context_precision"][i]) if ragas_result.get("context_precision") and pd.notna(ragas_result["context_precision"][i]) else None
+                                result.context_recall_score = float(ragas_result["context_recall"][i]) if ragas_result.get("context_recall") and pd.notna(ragas_result["context_recall"][i]) else None
+                                
+                            except Exception as score_err:
+                                self.logger.warning(f"Error processing dict scores for question {result.question_id}: {score_err}")
                 
-                # Fall back to subprocess approach for event loop isolation
+                # Log summary of assigned scores
+                assigned_scores = [r for r in valid_results if r.faithfulness_score is not None]
+                self.logger.info(f"Successfully assigned RAGAS scores to {len(assigned_scores)}/{len(valid_results)} questions")
+                
+                if assigned_scores:
+                    avg_faithfulness = np.mean([r.faithfulness_score for r in assigned_scores if r.faithfulness_score is not None])
+                    self.logger.info(f"Average faithfulness score: {avg_faithfulness:.3f}")
+                
+            except Exception as eval_error:
+                self.logger.error(f"RAGAS evaluation execution failed: {eval_error}")
+                import traceback
+                self.logger.error(f"Full traceback: {traceback.format_exc()}")
+                
+                # Try subprocess fallback
                 try:
                     self.logger.info("Attempting RAGAS evaluation via subprocess...")
-                    ragas_scores = await self._run_ragas_subprocess(questions, answers, contexts)
+                    ragas_scores = await self._run_ragas_subprocess_improved(questions, answers, contexts, ground_truths)
                     
                     if ragas_scores:
-                        # Update results with subprocess scores
                         for i, result in enumerate(valid_results):
                             if i < len(ragas_scores):
                                 score_dict = ragas_scores[i]
@@ -478,16 +617,172 @@ class RAGEvaluator:
                         
                 except Exception as subprocess_error:
                     self.logger.error(f"Subprocess RAGAS evaluation also failed: {subprocess_error}")
-            
+        
         except Exception as e:
-            self.logger.error(f"RAGAS evaluation failed: {e}")
-            # Check if it's an event loop issue
-            if "uvloop" in str(e).lower() or "nest_asyncio" in str(e).lower():
-                self.logger.error("Event loop compatibility issue detected - RAGAS requires standard asyncio")
-            # Continue without RAGAS scores
+            self.logger.error(f"RAGAS evaluation failed with unexpected error: {e}")
+            import traceback
+            self.logger.error(f"Full traceback: {traceback.format_exc()}")
         
         return results
     
+    async def _run_ragas_subprocess_improved(self, questions: List[str], answers: List[str], contexts: List[List[str]], ground_truths: List[str]) -> Optional[List[Dict]]:
+        """Run RAGAS evaluation in a subprocess with improved error handling and ground truth support."""
+        import subprocess
+        import tempfile
+        import json
+        import os
+        
+        try:
+            # Create temporary data file
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                data = {
+                    "questions": questions,
+                    "answers": answers,
+                    "contexts": contexts,
+                    "ground_truths": ground_truths
+                }
+                json.dump(data, f)
+                temp_file = f.name
+            
+            # Create improved script with proper error handling
+            script_content = '''
+import sys
+import json
+import logging
+import traceback
+import os
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+try:
+    # Set OpenAI API key if available
+    if "OPENAI_API_KEY" in os.environ:
+        logger.info("OpenAI API key found in environment")
+    else:
+        logger.error("OPENAI_API_KEY not found in environment")
+        sys.exit(1)
+    
+    # Import RAGAS with error handling
+    logger.info("Importing RAGAS components...")
+    import pandas as pd
+    from ragas import evaluate
+    from ragas.metrics import Faithfulness, AnswerRelevancy, ContextPrecision, ContextRecall
+    from ragas.llms import LangchainLLMWrapper
+    from ragas.embeddings import LangchainEmbeddingsWrapper
+    from ragas.run_config import RunConfig
+    from datasets import Dataset
+    from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+    logger.info("Successfully imported RAGAS components")
+    
+    # Load data
+    with open(sys.argv[1], 'r') as f:
+        data = json.load(f)
+    
+    logger.info(f"Loaded data for {len(data['questions'])} questions")
+    
+    # Configure LLM and embeddings
+    logger.info("Configuring LLM and embeddings...")
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, max_retries=3, request_timeout=60)
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-small", max_retries=3, request_timeout=60)
+    
+    evaluator_llm = LangchainLLMWrapper(llm)
+    evaluator_embeddings = LangchainEmbeddingsWrapper(embeddings)
+    
+    # Create metrics
+    logger.info("Creating RAGAS metrics...")
+    metrics = [
+        Faithfulness(llm=evaluator_llm),
+        AnswerRelevancy(llm=evaluator_llm, embeddings=evaluator_embeddings),
+        ContextPrecision(llm=evaluator_llm),
+        ContextRecall(llm=evaluator_llm)
+    ]
+    
+    # Create dataset
+    logger.info("Creating dataset...")
+    dataset = Dataset.from_dict({
+        "question": data["questions"],
+        "answer": data["answers"], 
+        "contexts": data["contexts"],
+        "ground_truth": data["ground_truths"]
+    })
+    
+    logger.info(f"Dataset created with columns: {dataset.column_names}")
+    
+    # Configure run settings
+    run_config = RunConfig(timeout=300, max_retries=2, max_wait=60)
+    
+    # Run evaluation
+    logger.info("Starting RAGAS evaluation...")
+    result = evaluate(dataset=dataset, metrics=metrics, run_config=run_config)
+    logger.info("RAGAS evaluation completed")
+    
+    # Convert to list of dicts
+    scores = []
+    if hasattr(result, 'to_pandas'):
+        df = result.to_pandas()
+        for i in range(len(df)):
+            scores.append({
+                "faithfulness": float(df.iloc[i].get("faithfulness", 0)) if not pd.isna(df.iloc[i].get("faithfulness")) else None,
+                "answer_relevancy": float(df.iloc[i].get("answer_relevancy", 0)) if not pd.isna(df.iloc[i].get("answer_relevancy")) else None,
+                "context_precision": float(df.iloc[i].get("context_precision", 0)) if not pd.isna(df.iloc[i].get("context_precision")) else None,
+                "context_recall": float(df.iloc[i].get("context_recall", 0)) if not pd.isna(df.iloc[i].get("context_recall")) else None,
+            })
+    else:
+        # Handle dict format
+        for i in range(len(data["questions"])):
+            scores.append({
+                "faithfulness": float(result.get("faithfulness", [None])[i]) if result.get("faithfulness") and i < len(result.get("faithfulness", [])) and result["faithfulness"][i] is not None else None,
+                "answer_relevancy": float(result.get("answer_relevancy", [None])[i]) if result.get("answer_relevancy") and i < len(result.get("answer_relevancy", [])) and result["answer_relevancy"][i] is not None else None,
+                "context_precision": float(result.get("context_precision", [None])[i]) if result.get("context_precision") and i < len(result.get("context_precision", [])) and result["context_precision"][i] is not None else None,
+                "context_recall": float(result.get("context_recall", [None])[i]) if result.get("context_recall") and i < len(result.get("context_recall", [])) and result["context_recall"][i] is not None else None,
+            })
+    
+    logger.info(f"Generated {len(scores)} score records")
+    print(json.dumps(scores))
+
+except Exception as e:
+    logger.error(f"RAGAS subprocess evaluation failed: {e}")
+    logger.error(f"Traceback: {traceback.format_exc()}")
+    sys.exit(1)
+'''
+            
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+                f.write(script_content)
+                script_file = f.name
+            
+            # Run subprocess with environment variables
+            env = os.environ.copy()
+            result = subprocess.run([
+                'python', script_file, temp_file
+            ], capture_output=True, text=True, timeout=600, env=env)
+            
+            # Clean up temp files
+            os.unlink(temp_file)
+            os.unlink(script_file)
+            
+            if result.returncode == 0:
+                try:
+                    scores = json.loads(result.stdout)
+                    self.logger.info(f"Subprocess returned {len(scores)} RAGAS scores")
+                    return scores
+                except json.JSONDecodeError as json_err:
+                    self.logger.error(f"Failed to parse subprocess output: {json_err}")
+                    self.logger.error(f"Raw output: {result.stdout}")
+                    return None
+            else:
+                self.logger.error(f"Subprocess failed with return code {result.returncode}")
+                self.logger.error(f"STDERR: {result.stderr}")
+                self.logger.error(f"STDOUT: {result.stdout}")
+                return None
+                
+        except Exception as e:
+            self.logger.error(f"Subprocess RAGAS evaluation error: {e}")
+            import traceback
+            self.logger.error(f"Traceback: {traceback.format_exc()}")
+            return None
+
     async def _run_ragas_subprocess(self, questions: List[str], answers: List[str], contexts: List[List[str]]) -> Optional[List[Dict]]:
         """Run RAGAS evaluation in a subprocess to avoid event loop conflicts."""
         import subprocess
@@ -637,7 +932,8 @@ if __name__ == "__main__":
         # If no RAGAS scores were computed, provide meaningful fallback metrics
         # Based on retrieval quality and response characteristics
         if not has_ragas_scores:
-            self.logger.info("No RAGAS scores available, generating fallback metrics based on retrieval quality")
+            self.logger.warning("No RAGAS scores available, generating fallback metrics based on retrieval quality")
+            self.logger.warning("This indicates RAGAS evaluation failed - check logs for specific errors")
             
             # Calculate fallback scores based on available data
             response_times = [r.response_time_ms for r in valid_results]
