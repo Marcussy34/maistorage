@@ -276,6 +276,7 @@ async def startup_event():
     logger.info("Starting MAI Storage RAG API...")
     
     try:
+        print("🚀 Initializing hybrid retriever...")
         # Initialize hybrid retriever
         retriever = HybridRetriever(
             qdrant_url=settings.qdrant_url,
@@ -284,8 +285,10 @@ async def startup_event():
             openai_api_key=settings.openai_api_key
         )
         
+        print("✅ Hybrid retriever initialized successfully")
         logger.info("Hybrid retriever initialized successfully")
         
+        print("🚀 Initializing baseline RAG system...")
         # Initialize baseline RAG system
         baseline_rag = create_baseline_rag(
             retriever=retriever,
@@ -295,8 +298,10 @@ async def startup_event():
             enable_sentence_citations=False  # Can be configured later
         )
         
+        print("✅ Baseline RAG system initialized successfully")
         logger.info("Baseline RAG system initialized successfully")
         
+        print("🚀 Initializing agentic RAG system...")
         # Initialize agentic RAG system (Phase 5)
         agentic_rag = create_agentic_rag(
             retriever=retriever,
@@ -306,11 +311,18 @@ async def startup_event():
             enable_sentence_citations=False  # Can be configured later
         )
         
+        print("✅ Agentic RAG system initialized successfully")
         logger.info("Agentic RAG system initialized successfully")
         
+        print("🎉 All services initialized successfully!")
+        
     except Exception as e:
+        print(f"💥 Failed to initialize services: {e}")
+        import traceback
+        traceback.print_exc()
         logger.error(f"Failed to initialize services: {e}")
-        raise
+        # Don't raise - let the app start with basic endpoints
+        print("⚠️ Continuing with basic endpoints only...")
 
 
 @app.on_event("shutdown")
@@ -319,12 +331,12 @@ async def shutdown_event():
     logger.info("Shutting down MAI Storage RAG API...")
 
 
-def get_retriever() -> HybridRetriever:
+def get_retriever() -> Optional[HybridRetriever]:
     """Dependency to get the retriever instance."""
     if retriever is None:
         raise HTTPException(
             status_code=503,
-            detail="Retrieval service not initialized"
+            detail="Retrieval service not initialized. Please check server logs."
         )
     return retriever
 
