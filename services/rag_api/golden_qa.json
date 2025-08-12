@@ -4,7 +4,7 @@
     "version": "1.0",
     "description": "Golden question-answer pairs for evaluating baseline RAG performance",
     "created_date": "2024-12-19",
-    "total_questions": 18,
+    "total_questions": 21,
     "question_types": {
       "factual": "Direct factual questions about specific topics",
       "conceptual": "Questions requiring understanding of concepts and relationships",
@@ -246,6 +246,45 @@
         "should_include": ["multiple topics", "testing", "semantic search"],
         "should_not_include": ["single topic", "not suitable"],
         "min_relevance_score": 0.7
+      }
+    },
+    {
+      "id": 19,
+      "question": "What are the key differences between transformer architectures and traditional RNN/LSTM models for sequence processing?",
+      "type": "comparative",
+      "difficulty": "hard",
+      "expected_topics": ["transformers", "RNN", "LSTM", "attention", "sequence processing"],
+      "expected_answer": "Transformers use self-attention mechanisms to process sequences in parallel, while RNNs/LSTMs process sequences sequentially. Transformers include multi-head attention and positional encoding, enabling better modeling of long-range dependencies without the sequential bottleneck of RNNs.",
+      "evaluation_criteria": {
+        "should_include": ["attention", "parallel", "sequential", "positional encoding"],
+        "should_not_include": ["identical", "no difference"],
+        "min_relevance_score": 0.8
+      }
+    },
+    {
+      "id": 20,
+      "question": "How would you implement a CI/CD pipeline that incorporates both security scanning and performance testing for a microservices architecture?",
+      "type": "multi_step",
+      "difficulty": "hard",
+      "expected_topics": ["CI/CD", "security", "performance testing", "microservices", "pipeline"],
+      "expected_answer": "A comprehensive CI/CD pipeline for microservices should include automated security scans (SAST/DAST), performance testing with load simulation, service-specific testing strategies, and coordinated deployment across services. Key components include build automation, security checks, performance validation, and deployment strategies like blue-green or canary releases.",
+      "evaluation_criteria": {
+        "should_include": ["security scanning", "performance testing", "microservices", "automation"],
+        "should_not_include": ["manual process", "single service"],
+        "min_relevance_score": 0.7
+      }
+    },
+    {
+      "id": 21,
+      "question": "Explain how ensemble methods like bagging and boosting work, and when you would choose one over the other in machine learning projects.",
+      "type": "conceptual",
+      "difficulty": "medium",
+      "expected_topics": ["ensemble methods", "bagging", "boosting", "random forest", "XGBoost"],
+      "expected_answer": "Bagging trains multiple models on different data subsets and averages predictions (like Random Forest), reducing variance. Boosting trains models sequentially where each corrects previous errors (like XGBoost), reducing bias. Choose bagging when overfitting is a concern, boosting when you have high bias and need better accuracy.",
+      "evaluation_criteria": {
+        "should_include": ["parallel", "sequential", "variance", "bias"],
+        "should_not_include": ["identical approach", "no difference"],
+        "min_relevance_score": 0.8
       }
     }
   ],

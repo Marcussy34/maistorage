@@ -1,0 +1,101 @@
+{
+  "dataset_info": {
+    "name": "Complex Reasoning QA Dataset",
+    "version": "2.0",
+    "description": "Questions requiring multi-step reasoning and complex analysis",
+    "created_date": "2024-12-19",
+    "total_questions": 12,
+    "question_types": {
+      "multi_step": "Questions requiring multiple reasoning steps",
+      "comparative_analysis": "Questions comparing multiple concepts in depth",
+      "synthesis": "Questions requiring combining information from multiple sources",
+      "application": "Questions about practical implementation and real-world scenarios"
+    }
+  },
+  "questions": [
+    {
+      "id": 1,
+      "question": "How would you design a machine learning pipeline that combines multiple deep learning architectures for a multi-modal AI system, and what are the key considerations for performance optimization?",
+      "type": "multi_step",
+      "difficulty": "hard",
+      "expected_topics": ["deep learning", "multi-modal", "pipeline design", "optimization", "architecture"],
+      "expected_reasoning_steps": [
+        "Identify different modalities (text, image, audio)",
+        "Select appropriate architectures for each modality",
+        "Design fusion strategies",
+        "Consider performance optimization techniques",
+        "Address scalability and deployment concerns"
+      ]
+    },
+    {
+      "id": 2,
+      "question": "Compare the trade-offs between microservices and monolithic architectures when implementing a CI/CD pipeline with security considerations, and explain how this impacts testing strategies.",
+      "type": "comparative_analysis",
+      "difficulty": "hard",
+      "expected_topics": ["microservices", "monolithic", "CI/CD", "security", "testing"],
+      "expected_reasoning_steps": [
+        "Analyze architectural differences",
+        "Evaluate CI/CD implications for each approach",
+        "Consider security implications",
+        "Compare testing strategies",
+        "Synthesize recommendations"
+      ]
+    },
+    {
+      "id": 3,
+      "question": "If you were to implement a distributed machine learning system using transfer learning and reinforcement learning, how would you handle model versioning, A/B testing, and performance monitoring across multiple deployment environments?",
+      "type": "synthesis",
+      "difficulty": "hard",
+      "expected_topics": ["distributed systems", "transfer learning", "reinforcement learning", "model versioning", "A/B testing", "monitoring"],
+      "expected_reasoning_steps": [
+        "Design distributed ML architecture",
+        "Implement model versioning strategy",
+        "Set up A/B testing framework",
+        "Establish monitoring systems",
+        "Coordinate across environments"
+      ]
+    },
+    {
+      "id": 4,
+      "question": "What are the implications of using SOLID principles in conjunction with design patterns when building a system that requires both high performance optimization and comprehensive security measures?",
+      "type": "synthesis",
+      "difficulty": "hard",
+      "expected_topics": ["SOLID principles", "design patterns", "performance optimization", "security"],
+      "expected_reasoning_steps": [
+        "Analyze SOLID principles application",
+        "Identify relevant design patterns",
+        "Consider performance implications",
+        "Evaluate security requirements",
+        "Balance competing concerns"
+      ]
+    },
+    {
+      "id": 5,
+      "question": "How would you architect a system that combines transformer-based models with traditional machine learning ensemble methods, ensuring proper regularization and handling of distributed training across multiple GPUs?",
+      "type": "application",
+      "difficulty": "hard",
+      "expected_topics": ["transformers", "ensemble methods", "regularization", "distributed training", "GPU"],
+      "expected_reasoning_steps": [
+        "Design hybrid architecture",
+        "Implement ensemble strategies",
+        "Apply regularization techniques",
+        "Configure distributed training",
+        "Optimize GPU utilization"
+      ]
+    },
+    {
+      "id": 6,
+      "question": "Explain how you would implement a comprehensive testing strategy that covers unit testing, integration testing, and performance testing for a microservices system with event-driven architecture.",
+      "type": "multi_step",
+      "difficulty": "hard",
+      "expected_topics": ["testing strategy", "microservices", "event-driven architecture", "unit testing", "integration testing"],
+      "expected_reasoning_steps": [
+        "Design testing pyramid for microservices",
+        "Handle event-driven testing challenges",
+        "Implement service isolation",
+        "Set up performance testing",
+        "Coordinate test execution"
+      ]
+    }
+  ]
+}
