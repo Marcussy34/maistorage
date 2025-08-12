@@ -250,6 +250,9 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "https://*.vercel.app",  # Allow all Vercel subdomains
+        "https://vercel.app",    # Allow Vercel domains
+        "https://your-actual-vercel-url.vercel.app",  # Add your specific URL here
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -1507,11 +1510,14 @@ app_start_time = time.time()
 
 
 if __name__ == "__main__":
+    import os
     # Use standard asyncio loop to avoid conflicts with RAGAS nest_asyncio
+    # Get port from environment variable (Render sets this automatically)
+    port = int(os.environ.get("PORT", 8000))
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8000,
+        port=port,
         reload=True,
         loop="asyncio"  # Force standard asyncio instead of uvloop
     )
