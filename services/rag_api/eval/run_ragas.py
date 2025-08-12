@@ -221,18 +221,39 @@ class RAGEvaluator:
                 response_time_ms = (end_time - start_time) * 1000
                 
                 # Extract answer and sources from final state
-                answer = final_state.get("final_answer", "")
-                retrieved_docs = final_state.get("retrieved_docs", [])
+                answer = final_state.get("answer", "") or final_state.get("final_answer", "")
+                retrieved_docs = final_state.get("retrieval_results", []) or final_state.get("retrieved_docs", [])
                 
                 # Convert retrieved docs to sources format
                 sources = []
                 for doc in retrieved_docs:
-                    sources.append({
-                        "content": doc.get("content", ""),
-                        "doc_id": doc.get("doc_id", ""),
-                        "score": doc.get("score", 0.0),
-                        "title": doc.get("metadata", {}).get("title", "Unknown")
-                    })
+                    # Handle both formats: direct dict or RetrievalResult dict
+                    if isinstance(doc, dict):
+                        # If it's a RetrievalResult dict, extract document info
+                        if "document" in doc:
+                            document = doc["document"]
+                            sources.append({
+                                "content": document.get("text", ""),
+                                "doc_id": document.get("id", ""),
+                                "score": doc.get("final_score", 0.0),
+                                "title": document.get("metadata", {}).get("title", "Unknown")
+                            })
+                        else:
+                            # Direct format
+                            sources.append({
+                                "content": doc.get("content", "") or doc.get("text", ""),
+                                "doc_id": doc.get("doc_id", "") or doc.get("id", ""),
+                                "score": doc.get("score", 0.0) or doc.get("final_score", 0.0),
+                                "title": doc.get("metadata", {}).get("title", "Unknown")
+                            })
+                    else:
+                        # Fallback for other formats
+                        sources.append({
+                            "content": str(doc),
+                            "doc_id": "unknown",
+                            "score": 0.0,
+                            "title": "Unknown"
+                        })
                 
                 result = EvaluationResult(
                     question_id=question_id,
