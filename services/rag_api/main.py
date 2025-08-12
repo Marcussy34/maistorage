@@ -9,6 +9,49 @@ import os
 import time
 from datetime import datetime
 from typing import Optional, AsyncGenerator
+from pathlib import Path
+
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).parent.parent.parent / ".env")
+
+# Ensure asyncio compatibility for RAGAS
+import asyncio
+import sys
+
+# Force standard asyncio event loop policy to avoid uvloop conflicts
+asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
+
+# Import nest_asyncio and patch if needed for RAGAS compatibility  
+import nest_asyncio
+try:
+    # Check if we're using uvloop
+    if hasattr(asyncio, '_get_running_loop'):
+        current_loop = asyncio._get_running_loop()
+        if current_loop and 'uvloop' in str(type(current_loop)):
+            print("Warning: uvloop detected, skipping nest_asyncio patching to avoid conflicts")
+        else:
+            nest_asyncio.apply()
+    else:
+        # Fallback for older Python versions
+        nest_asyncio.apply()
+except Exception as e:
+    print(f"Note: nest_asyncio patching skipped: {e}")
+
+# Import RAGAS components with better error handling
+RAGEvaluator = None
+RAGAS_AVAILABLE = False
+
+try:
+    from eval.run_ragas import RAGEvaluator
+    RAGAS_AVAILABLE = True
+    print("RAGAS evaluation system loaded successfully")
+except ImportError as e:
+    print(f"RAGAS import failed - some dependencies may be missing: {e}")
+except Exception as e:
+    print(f"RAGAS evaluation unavailable due to initialization error: {e}")
+    if "uvloop" in str(e).lower() or "nest_asyncio" in str(e).lower():
+        print("This appears to be an event loop compatibility issue. Will attempt to resolve at runtime.")
 
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,7 +73,8 @@ from middleware import (
     RateLimitMiddleware,
     CircuitBreakerMiddleware,
     SecurityHeadersMiddleware,
-    ErrorBoundaryMiddleware
+    ErrorBoundaryMiddleware,
+    DateTimeAwareJSONResponse
 )
 
 # Local imports
@@ -864,11 +908,7 @@ async def chat_stream(
 # ============================================================================
 
 @app.post("/eval/run")
-async def run_evaluation(
-    mode: str = "traditional",  # "traditional", "agentic", or "both" 
-    top_k: int = 5,
-    save_results: bool = True
-):
+async def run_evaluation(request: dict):
     """
     Run evaluation on Traditional or Agentic RAG using golden QA dataset.
     
@@ -876,81 +916,124 @@ async def run_evaluation(
     and retrieval-specific metrics (Recall@k, nDCG, MRR).
     
     Args:
-        mode: Evaluation mode - "traditional", "agentic", or "both"
-        top_k: Number of documents to retrieve for evaluation
-        save_results: Whether to save results to disk
+        request: JSON request body with mode, top_k, save_results
         
     Returns:
         Evaluation results with RAGAS metrics and performance data
     """
     try:
-        from eval.run_ragas import RAGEvaluator
         import json
-        from pathlib import Path
+        
+        # Check RAGAS availability with better error reporting
+        if not RAGAS_AVAILABLE or RAGEvaluator is None:
+            error_msg = "RAGAS evaluation is not available. This could be due to missing dependencies or event loop conflicts."
+            logger.error(error_msg)
+            return DateTimeAwareJSONResponse(
+                status_code=503,
+                content={"error": error_msg, "ragas_available": False}
+            )
+        
+        # Extract parameters from request
+        mode = request.get("mode", "traditional")
+        top_k = request.get("top_k", 5)
+        save_results = request.get("save_results", True)
         
         logger.info(f"Starting evaluation - mode={mode}, top_k={top_k}")
         
         # Load golden QA dataset
         golden_qa_path = Path(__file__).parent / "golden_qa.json"
+        if not golden_qa_path.exists():
+            error_msg = f"Golden QA dataset not found at {golden_qa_path}"
+            logger.error(error_msg)
+            return DateTimeAwareJSONResponse(
+                status_code=404,
+                content={"error": error_msg}
+            )
+            
         with open(golden_qa_path, 'r') as f:
             golden_qa_data = json.load(f)
         
         questions = golden_qa_data["questions"]
         
-        # Initialize RAG systems
-        retriever_instance = get_retriever()
-        baseline_rag_instance = get_baseline_rag()
-        agentic_rag_instance = get_agentic_rag()
+        # Use global RAG systems (initialized at startup)
+        global retriever, baseline_rag, agentic_rag
         
-        evaluator = RAGEvaluator(
-            baseline_rag=baseline_rag_instance,
-            agentic_rag=agentic_rag_instance,
-            retriever=retriever_instance
-        )
+        if retriever is None or baseline_rag is None or agentic_rag is None:
+            error_msg = "RAG services not initialized properly"
+            logger.error(error_msg)
+            return DateTimeAwareJSONResponse(
+                status_code=503,
+                content={"error": error_msg}
+            )
+        
+        # Try to create evaluator in a safe way that handles event loop issues
+        try:
+            evaluator = RAGEvaluator(
+                baseline_rag=baseline_rag,
+                agentic_rag=agentic_rag,
+                retriever=retriever
+            )
+        except Exception as eval_error:
+            logger.error(f"Failed to create RAG evaluator: {eval_error}")
+            if "uvloop" in str(eval_error).lower() or "nest_asyncio" in str(eval_error).lower():
+                error_msg = "Event loop compatibility issue detected. RAGAS requires standard asyncio loop."
+                return DateTimeAwareJSONResponse(
+                    status_code=503,
+                    content={"error": error_msg, "details": str(eval_error)}
+                )
+            raise
         
         results = {}
         
         # Run Traditional RAG evaluation
         if mode in ["traditional", "both"]:
             logger.info("Running Traditional RAG evaluation...")
-            traditional_results = await evaluator.evaluate_traditional_rag(questions, top_k)
-            traditional_results = await evaluator.run_ragas_evaluation(traditional_results)
-            traditional_retrieval_metrics = evaluator.calculate_retrieval_metrics(
-                traditional_results, questions, top_k
-            )
-            
-            results["traditional"] = {
-                "results": [result.__dict__ for result in traditional_results],
-                "retrieval_metrics": traditional_retrieval_metrics,
-                "ragas_summary": evaluator._calculate_ragas_summary(traditional_results),
-                "performance_summary": evaluator._calculate_performance_summary(traditional_results)
-            }
-            
-            if save_results:
-                output_dir = Path(__file__).parent / "eval" / "results"
-                output_dir.mkdir(parents=True, exist_ok=True)
-                evaluator.save_results(traditional_results, traditional_retrieval_metrics, output_dir)
+            try:
+                traditional_results = await evaluator.evaluate_traditional_rag(questions, top_k)
+                traditional_results = await evaluator.run_ragas_evaluation(traditional_results)
+                traditional_retrieval_metrics = evaluator.calculate_retrieval_metrics(
+                    traditional_results, questions, top_k
+                )
+                
+                results["traditional"] = {
+                    "results": [result.__dict__ for result in traditional_results],
+                    "retrieval_metrics": traditional_retrieval_metrics,
+                    "ragas_summary": evaluator._calculate_ragas_summary(traditional_results),
+                    "performance_summary": evaluator._calculate_performance_summary(traditional_results)
+                }
+                
+                if save_results:
+                    output_dir = Path(__file__).parent / "eval" / "results"
+                    output_dir.mkdir(parents=True, exist_ok=True)
+                    evaluator.save_results(traditional_results, traditional_retrieval_metrics, output_dir)
+            except Exception as e:
+                logger.error(f"Traditional RAG evaluation failed: {e}")
+                results["traditional"] = {"error": str(e)}
         
         # Run Agentic RAG evaluation  
         if mode in ["agentic", "both"]:
             logger.info("Running Agentic RAG evaluation...")
-            agentic_results = await evaluator.evaluate_agentic_rag(questions, top_k)
-            agentic_results = await evaluator.run_ragas_evaluation(agentic_results)
-            agentic_retrieval_metrics = evaluator.calculate_retrieval_metrics(
-                agentic_results, questions, top_k
-            )
-            
-            results["agentic"] = {
-                "results": [result.__dict__ for result in agentic_results],
-                "retrieval_metrics": agentic_retrieval_metrics,
-                "ragas_summary": evaluator._calculate_ragas_summary(agentic_results),
-                "performance_summary": evaluator._calculate_performance_summary(agentic_results)
-            }
-            
-            if save_results:
-                output_dir = Path(__file__).parent / "eval" / "results"
-                output_dir.mkdir(parents=True, exist_ok=True)
-                evaluator.save_results(agentic_results, agentic_retrieval_metrics, output_dir)
+            try:
+                agentic_results = await evaluator.evaluate_agentic_rag(questions, top_k)
+                agentic_results = await evaluator.run_ragas_evaluation(agentic_results)
+                agentic_retrieval_metrics = evaluator.calculate_retrieval_metrics(
+                    agentic_results, questions, top_k
+                )
+                
+                results["agentic"] = {
+                    "results": [result.__dict__ for result in agentic_results],
+                    "retrieval_metrics": agentic_retrieval_metrics,
+                    "ragas_summary": evaluator._calculate_ragas_summary(agentic_results),
+                    "performance_summary": evaluator._calculate_performance_summary(agentic_results)
+                }
+                
+                if save_results:
+                    output_dir = Path(__file__).parent / "eval" / "results"
+                    output_dir.mkdir(parents=True, exist_ok=True)
+                    evaluator.save_results(agentic_results, agentic_retrieval_metrics, output_dir)
+            except Exception as e:
+                logger.error(f"Agentic RAG evaluation failed: {e}")
+                results["agentic"] = {"error": str(e)}
         
         # Add metadata
         results["metadata"] = {
@@ -958,22 +1041,27 @@ async def run_evaluation(
             "mode": mode,
             "top_k": top_k,
             "total_questions": len(questions),
-            "golden_qa_version": golden_qa_data.get("dataset_info", {}).get("version", "unknown")
+            "golden_qa_version": golden_qa_data.get("dataset_info", {}).get("version", "unknown"),
+            "ragas_available": RAGAS_AVAILABLE
         }
         
         logger.info(f"Evaluation completed successfully - mode={mode}")
-        return results
+        return DateTimeAwareJSONResponse(content=results)
         
     except Exception as e:
+        import traceback
+        tb_str = traceback.format_exc()
         logger.error(f"Evaluation failed: {e}")
-        raise HTTPException(
+        logger.error(f"Full traceback: {tb_str}")
+        
+        # Return a proper error response
+        return DateTimeAwareJSONResponse(
             status_code=500,
-            detail=ErrorResponse(
-                error=ErrorDetail(
-                    code="EVALUATION_FAILED", 
-                    message=f"Evaluation failed: {str(e)}"
-                )
-            ).dict()
+            content={
+                "error": f"Evaluation failed: {str(e)}",
+                "details": tb_str,
+                "ragas_available": RAGAS_AVAILABLE
+            }
         )
 
 
@@ -998,7 +1086,10 @@ async def get_evaluation_results(limit: int = 10):
         results_dir = Path(__file__).parent / "eval" / "results"
         
         if not results_dir.exists():
-            return {"results": [], "message": "No evaluation results found"}
+            return DateTimeAwareJSONResponse(content={
+                "results": [], 
+                "message": "No evaluation results found"
+            })
         
         # Find all evaluation result JSON files
         json_files = list(results_dir.glob("evaluation_results_*.json"))
@@ -1029,11 +1120,11 @@ async def get_evaluation_results(limit: int = 10):
                 logger.warning(f"Failed to load evaluation result {file_path}: {e}")
                 continue
         
-        return {
+        return DateTimeAwareJSONResponse(content={
             "results": results,
             "total_files": len(results),
             "results_directory": str(results_dir)
-        }
+        })
         
     except Exception as e:
         logger.error(f"Failed to get evaluation results: {e}")
@@ -1103,10 +1194,10 @@ async def compare_evaluations(
                 agentic_data = json.load(f)
         
         if not traditional_data or not agentic_data:
-            return {
+            return DateTimeAwareJSONResponse(content={
                 "error": "Could not find both traditional and agentic evaluation results",
                 "available_files": [f.name for f in results_dir.glob("*.json")]
-            }
+            })
         
         # Perform comparison analysis
         comparison = {
@@ -1161,7 +1252,7 @@ async def compare_evaluations(
                     "improvement_pct": ((agent_perf[metric] - trad_perf[metric]) / trad_perf[metric] * 100) if trad_perf[metric] > 0 else 0
                 }
         
-        return comparison
+        return DateTimeAwareJSONResponse(content=comparison)
         
     except Exception as e:
         logger.error(f"Comparison failed: {e}")
@@ -1416,9 +1507,11 @@ app_start_time = time.time()
 
 
 if __name__ == "__main__":
+    # Use standard asyncio loop to avoid conflicts with RAGAS nest_asyncio
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True
+        reload=True,
+        loop="asyncio"  # Force standard asyncio instead of uvloop
     )

@@ -1,0 +1,795 @@
+{
+  "metadata": {
+    "evaluation_timestamp": "2025-08-12T14:47:14.609958",
+    "total_questions": 18,
+    "successful_evaluations": 17,
+    "failed_evaluations": 1,
+    "mode": "traditional"
+  },
+  "retrieval_metrics": {
+    "recall_at_k": 0.41666666666666663,
+    "ndcg_at_k": 0.9563578507970223,
+    "mrr_score": 0.9705882352941176,
+    "precision_at_k": 0.4117647058823529,
+    "map_score": 0.4117647058823529
+  },
+  "ragas_summary": {},
+  "performance_summary": {
+    "avg_response_time_ms": 2384.191260618322,
+    "p50_response_time_ms": 2071.794033050537,
+    "p95_response_time_ms": 3399.681520462035,
+    "avg_token_usage": 568.6470588235294,
+    "total_token_usage": "9667",
+    "avg_retrieval_time_ms": 619.7259005378274,
+    "success_rate": 0.9444444444444444
+  },
+  "detailed_results": [
+    {
+      "question_id": 1,
+      "question": "What is Python?",
+      "answer": "Python is a high-level, interpreted programming language characterized by its simple, easy-to-learn syntax that emphasizes readability, which helps reduce the cost of program maintenance. Additionally, Python supports modules and packages, promoting program modularity and code reuse [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programmi...",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.9608234167098999,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed....",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.0029496564529836178,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be ...",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.0015830275369808078,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and ap...",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.0011474393540993333,
+          "title": "sample_document.md"
+        }
+      ],
+      "response_time_ms": 2217.820167541504,
+      "token_usage": 548,
+      "retrieval_time_ms": 920.9580421447754,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:46:35.195828",
+      "error": null
+    },
+    {
+      "question_id": 2,
+      "question": "How does machine learning work?",
+      "answer": "Machine learning works by providing systems the ability to automatically learn and improve from experience without being explicitly programmed. It focuses on the development of computer programs that can access data and use it to learn for themselves, allowing these systems to adapt and enhance their performance over time based on the data they process [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed....",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.9876495003700256,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be ...",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.05054101347923279,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programmi...",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.028850717470049858,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and ap...",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.0043161590583622456,
+          "title": "sample_document.md"
+        }
+      ],
+      "response_time_ms": 1988.9249801635742,
+      "token_usage": 560,
+      "retrieval_time_ms": 664.1640663146973,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:46:37.184867",
+      "error": null
+    },
+    {
+      "question_id": 3,
+      "question": "What is the definition of artificial intelligence?",
+      "answer": "Artificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. It can also be applied to any machine that exhibits traits associated with a human mind, such as learning and problem-solving [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be ...",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.9986816048622131,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed....",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.41184353828430176,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and ap...",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.011250234209001064,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programmi...",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.0024541050661355257,
+          "title": "sample_document.md"
+        }
+      ],
+      "response_time_ms": 1940.826177597046,
+      "token_usage": 554,
+      "retrieval_time_ms": 538.9571189880371,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:46:39.125797",
+      "error": null
+    },
+    {
+      "question_id": 4,
+      "question": "What does data science involve?",
+      "answer": "Data science involves the use of scientific methods, processes, algorithms, and systems to extract knowledge and insights from both structured and unstructured data. It applies this knowledge and actionable insights across a broad range of application domains [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and ap...",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.9830400347709656,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be ...",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.10022955387830734,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed....",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.002153062494471669,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programmi...",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.0005763831431977451,
+          "title": "sample_document.md"
+        }
+      ],
+      "response_time_ms": 1892.9250240325928,
+      "token_usage": 545,
+      "retrieval_time_ms": 558.6886405944824,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:46:41.018780",
+      "error": null
+    },
+    {
+      "question_id": 5,
+      "question": "Why is Python's syntax important?",
+      "answer": "Python's syntax is important because it is designed to be simple and easy to learn, which emphasizes readability. This readability helps reduce the cost of program maintenance, making it easier for developers to understand and modify the code. Additionally, Python's support for modules and packages fosters program modularity and encourages code reuse, further enhancing its utility in software development [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programmi...",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.43965762853622437,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed....",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 7.427202217513695e-05,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and ap...",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 6.328390736598521e-05,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be ...",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 2.5350482246722095e-05,
+          "title": "sample_document.md"
+        }
+      ],
+      "response_time_ms": 2140.3770446777344,
+      "token_usage": 572,
+      "retrieval_time_ms": 491.9726848602295,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:46:43.159227",
+      "error": null
+    },
+    {
+      "question_id": 6,
+      "question": "How is machine learning related to artificial intelligence?",
+      "answer": "Machine learning is a subset of artificial intelligence (AI) that enables systems to learn and improve from experience automatically, without being explicitly programmed. It focuses on developing computer programs that can access data and learn from it independently. In contrast, artificial intelligence refers to the broader concept of simulating human intelligence in machines, which includes not only learning but also problem-solving and mimicking human actions [Source: doc_name, chunk_index]. \n\nThus, machine learning is a specific approach within the larger field of AI, emphasizing the ability of systems to learn from data.",
+      "sources": [
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed....",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.9914060831069946,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be ...",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.7100445032119751,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and ap...",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.008011682890355587,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programmi...",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.004535351879894733,
+          "title": "sample_document.md"
+        }
+      ],
+      "response_time_ms": 3020.031452178955,
+      "token_usage": 607,
+      "retrieval_time_ms": 609.2629432678223,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:46:46.179318",
+      "error": null
+    },
+    {
+      "question_id": 7,
+      "question": "What programming features does Python support?",
+      "answer": "Python supports modules and packages, which encourages program modularity and code reuse. This feature contributes to a simpler and more maintainable programming environment due to Python's emphasis on readability and ease of learning [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programmi...",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.9009333848953247,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed....",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.001384303322993219,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and ap...",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.0011181009467691183,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be ...",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.0006092869443818927,
+          "title": "sample_document.md"
+        }
+      ],
+      "response_time_ms": 1888.1828784942627,
+      "token_usage": 542,
+      "retrieval_time_ms": 587.2557163238525,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:46:48.067560",
+      "error": null
+    },
+    {
+      "question_id": 8,
+      "question": "What makes machine learning different from traditional programming?",
+      "answer": "Machine learning differs from traditional programming in that it enables systems to automatically learn and improve from experience without being explicitly programmed for specific tasks. In traditional programming, developers write detailed instructions for the machine to follow, while in machine learning, the focus is on developing programs that can access data and learn from it independently [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed....",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.4955242872238159,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programmi...",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.016435328871011734,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be ...",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.004122574348002672,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and ap...",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.0021673927549272776,
+          "title": "sample_document.md"
+        }
+      ],
+      "response_time_ms": 2455.2831649780273,
+      "token_usage": 566,
+      "retrieval_time_ms": 568.7530040740967,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:46:50.522891",
+      "error": null
+    },
+    {
+      "question_id": 9,
+      "question": "What types of data does data science work with?",
+      "answer": "",
+      "sources": [],
+      "response_time_ms": 0,
+      "token_usage": 0,
+      "retrieval_time_ms": 0,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:46:50.936932",
+      "error": "math domain error"
+    },
+    {
+      "question_id": 10,
+      "question": "What human-like traits can AI systems exhibit?",
+      "answer": "AI systems can exhibit traits associated with a human mind, such as learning and problem-solving. These traits enable machines to think like humans and mimic their actions, which is a fundamental aspect of Artificial Intelligence (AI) [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be ...",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.9721782207489014,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed....",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.007641016971319914,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and ap...",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.0011377024929970503,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programmi...",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 3.3988559152930975e-05,
+          "title": "sample_document.md"
+        }
+      ],
+      "response_time_ms": 1869.0907955169678,
+      "token_usage": 548,
+      "retrieval_time_ms": 596.9879627227783,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:46:52.806083",
+      "error": null
+    },
+    {
+      "question_id": 11,
+      "question": "How does Python reduce maintenance costs?",
+      "answer": "Python reduces maintenance costs by emphasizing readability through its simple and easy-to-learn syntax. This focus on readability makes it easier for developers to understand and modify the code, thereby facilitating program maintenance and reducing associated costs [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programmi...",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.9203046560287476,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed....",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 2.1389514586189762e-05,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and ap...",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 1.730653821141459e-05,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be ...",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 1.6573980246903375e-05,
+          "title": "sample_document.md"
+        }
+      ],
+      "response_time_ms": 1975.5499362945557,
+      "token_usage": 545,
+      "retrieval_time_ms": 676.7857074737549,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:46:54.781699",
+      "error": null
+    },
+    {
+      "question_id": 12,
+      "question": "What is the goal of data science?",
+      "answer": "The goal of data science is to extract knowledge and insights from both structured and unstructured data using scientific methods, processes, algorithms, and systems. Additionally, it involves applying this knowledge and actionable insights across a broad range of application domains [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and ap...",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.9293308854103088,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be ...",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.026813112199306488,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed....",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.0013370640808716416,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programmi...",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.0005223921034485102,
+          "title": "sample_document.md"
+        }
+      ],
+      "response_time_ms": 1879.9009323120117,
+      "token_usage": 551,
+      "retrieval_time_ms": 565.310001373291,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:46:56.661670",
+      "error": null
+    },
+    {
+      "question_id": 13,
+      "question": "How do machines simulate human intelligence in AI?",
+      "answer": "Machines simulate human intelligence in AI by being programmed to think like humans and mimic their actions. This involves exhibiting traits associated with a human mind, such as learning and problem-solving capabilities. Essentially, AI systems are designed to replicate the cognitive functions that characterize human intelligence [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be ...",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.984419047832489,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed....",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.07896197587251663,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and ap...",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.00034676032373681664,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programmi...",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.0001289018546231091,
+          "title": "sample_document.md"
+        }
+      ],
+      "response_time_ms": 2071.794033050537,
+      "token_usage": 557,
+      "retrieval_time_ms": 555.1619529724121,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:46:58.733530",
+      "error": null
+    },
+    {
+      "question_id": 14,
+      "question": "What makes data science interdisciplinary?",
+      "answer": "Data science is considered interdisciplinary because it utilizes scientific methods, processes, algorithms, and systems to extract knowledge and insights from both structured and unstructured data. This application of knowledge and actionable insights spans a broad range of application domains, indicating that it draws from various fields and disciplines to achieve its objectives [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and ap...",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.987883985042572,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be ...",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.0018132333643734455,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed....",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.00019050757691729814,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programmi...",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 5.8266145060770214e-05,
+          "title": "sample_document.md"
+        }
+      ],
+      "response_time_ms": 3005.5289268493652,
+      "token_usage": 561,
+      "retrieval_time_ms": 681.0858249664307,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:47:01.739126",
+      "error": null
+    },
+    {
+      "question_id": 15,
+      "question": "How does machine learning improve over time?",
+      "answer": "Machine learning improves over time by automatically learning and enhancing its performance from experience without being explicitly programmed. This means that as machine learning systems access more data, they can learn from it and refine their algorithms to make better predictions or decisions based on that data [Source: doc_name, chunk_index]. However, the specific mechanisms of how this learning and improvement occur are not detailed in the provided context.",
+      "sources": [
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed....",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 0.4293409287929535,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programmi...",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.0007228266913443804,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be ...",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.00022219738457351923,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and ap...",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.00014880385424476117,
+          "title": "sample_document.md"
+        }
+      ],
+      "response_time_ms": 3091.9151306152344,
+      "token_usage": 574,
+      "retrieval_time_ms": 556.0238361358643,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:47:04.831197",
+      "error": null
+    },
+    {
+      "question_id": 16,
+      "question": "What is the main advantage of Python's design?",
+      "answer": "The main advantage of Python's design is its simple, easy-to-learn syntax that emphasizes readability. This design choice helps reduce the cost of program maintenance, making the language more accessible and manageable for programmers. Additionally, Python supports modules and packages, which encourages program modularity and code reuse [Source: doc_name, chunk_index].",
+      "sources": [
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programmi...",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.027279086410999298,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed....",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 4.541605812846683e-05,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and ap...",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 3.381904389243573e-05,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be ...",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 1.8902564988820814e-05,
+          "title": "sample_document.md"
+        }
+      ],
+      "response_time_ms": 2457.5748443603516,
+      "token_usage": 564,
+      "retrieval_time_ms": 789.4818782806396,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:47:07.288833",
+      "error": null
+    },
+    {
+      "question_id": 17,
+      "question": "What topics are covered in this document collection?",
+      "answer": "The document collection covers the following topics:\n\n1. **Data Science** - Defined as an interdisciplinary field that uses scientific methods and processes to extract knowledge and insights from data, applicable across various domains [Source: doc_name, chunk_index 3/4].\n\n2. **Python Programming** - Discusses Python as a high-level programming language known for its readability and support for modules and packages, which aids in modularity and code reuse [Source: doc_name, chunk_index N/A/4].\n\n3. **Artificial Intelligence (AI)** - Describes AI as the simulation of human intelligence in machines, enabling them to think and act like humans, including traits like learning and problem-solving [Source: doc_name, chunk_index 1/4].\n\n4. **Machine Learning** - A subset of AI that allows systems to learn and improve from experience without explicit programming, focusing on the development of programs that can learn from data [Source: doc_name, chunk_index 2/4].\n\nThese topics collectively encompass key areas in programming, AI, and data science.",
+      "sources": [
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and ap...",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.8625500202178955,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programmi...",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.0022958575282245874,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be ...",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 0.0004233488580211997,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed....",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 7.249990449054167e-05,
+          "title": "sample_document.md"
+        }
+      ],
+      "response_time_ms": 4630.747079849243,
+      "token_usage": 709,
+      "retrieval_time_ms": 593.8289165496826,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:47:11.919641",
+      "error": null
+    },
+    {
+      "question_id": 18,
+      "question": "How does the document describe testing semantic search?",
+      "answer": "The document mentions that it covers multiple topics related to programming, AI, and data science, making it ideal for testing semantic search capabilities. This implies that the variety and depth of content in the document are intended to evaluate how well a semantic search system can retrieve relevant information across different subject areas. [Source: doc_name, chunk_index]",
+      "sources": [
+        {
+          "content": "Data Science\n\nData science is an interdisciplinary field that uses scientific methods, processes, algorithms and systems to extract knowledge and insights from structured and unstructured data, and ap...",
+          "doc_id": "a7d65985-aa29-4ead-8ce5-e40b43aa7dce",
+          "score": 0.8772865533828735,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Sample Document for Phase 2 Testing\n\nIntroduction\n\nThis is a sample document to test the MAI Storage Phase 2 hybrid retrieval system.\n\nPython Programming\n\nPython is a high-level, interpreted programmi...",
+          "doc_id": "f61b937e-df42-4461-9818-c7e525d399de",
+          "score": 0.0021024993620812893,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed....",
+          "doc_id": "8d0869e0-5ff1-43a4-b195-d634f9a4a390",
+          "score": 9.713855979498476e-05,
+          "title": "sample_document.md"
+        },
+        {
+          "content": "Artificial Intelligence\n\nArtificial Intelligence (AI) refers to the simulation of human intelligence in machines that are programmed to think like humans and mimic their actions. The term may also be ...",
+          "doc_id": "e5b21b92-31ca-468f-9183-7320959ee9b7",
+          "score": 3.730516255018301e-05,
+          "title": "sample_document.md"
+        }
+      ],
+      "response_time_ms": 2004.7788619995117,
+      "token_usage": 564,
+      "retrieval_time_ms": 580.6620121002197,
+      "faithfulness_score": null,
+      "answer_relevancy_score": null,
+      "context_precision_score": null,
+      "context_recall_score": null,
+      "recall_at_k": null,
+      "ndcg_at_k": null,
+      "mrr_score": null,
+      "mode": "traditional",
+      "evaluation_timestamp": "2025-08-12T14:47:13.924480",
+      "error": null
+    }
+  ]
+}

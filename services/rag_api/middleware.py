@@ -14,6 +14,8 @@ import time
 from collections import defaultdict, deque
 from typing import Dict, Optional, Tuple
 import json
+from datetime import datetime
+import numpy as np
 
 from fastapi import Request, Response, HTTPException
 from fastapi.responses import JSONResponse
@@ -24,6 +26,34 @@ from logging_config import get_logger
 from models import ErrorResponse, ErrorDetail
 
 logger = get_logger(__name__)
+
+
+class DateTimeAwareJSONResponse(JSONResponse):
+    """Custom JSON response that can handle datetime objects."""
+    
+    def render(self, content) -> bytes:
+        def json_serializer(obj):
+            """Custom JSON serializer for datetime and numpy objects."""
+            if isinstance(obj, datetime):
+                return obj.isoformat()
+            elif isinstance(obj, (np.integer, np.int64, np.int32)):
+                return int(obj)
+            elif isinstance(obj, (np.floating, np.float64, np.float32)):
+                return float(obj)
+            elif isinstance(obj, np.ndarray):
+                return obj.tolist()
+            elif isinstance(obj, np.bool_):
+                return bool(obj)
+            raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
+        
+        return json.dumps(
+            content,
+            ensure_ascii=False,
+            allow_nan=False,
+            indent=None,
+            separators=(",", ":"),
+            default=json_serializer
+        ).encode("utf-8")
 
 
 class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
@@ -48,7 +78,7 @@ class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
                     content_length=content_length,
                     max_size=self.max_request_size
                 )
-                return JSONResponse(
+                return DateTimeAwareJSONResponse(
                     status_code=HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                     content=ErrorResponse(
                         error=ErrorDetail(
@@ -174,7 +204,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 **rate_info
             )
             
-            response = JSONResponse(
+            response = DateTimeAwareJSONResponse(
                 status_code=HTTP_429_TOO_MANY_REQUESTS,
                 content=ErrorResponse(
                     error=ErrorDetail(
@@ -286,7 +316,7 @@ class CircuitBreakerMiddleware(BaseHTTPMiddleware):
                     failure_count=self.failure_counts[service_key]
                 )
                 
-                return JSONResponse(
+                return DateTimeAwareJSONResponse(
                     status_code=503,
                     content=ErrorResponse(
                         error=ErrorDetail(
@@ -377,7 +407,7 @@ class ErrorBoundaryMiddleware(BaseHTTPMiddleware):
             )
             
             # Return generic error response
-            return JSONResponse(
+            return DateTimeAwareJSONResponse(
                 status_code=500,
                 content=ErrorResponse(
                     error=ErrorDetail(
