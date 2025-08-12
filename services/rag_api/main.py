@@ -153,7 +153,9 @@ class Settings(BaseSettings):
     @validator('openai_api_key')
     def validate_openai_api_key(cls, v):
         if not v or not v.startswith('sk-'):
+            print(f"❌ OPENAI_API_KEY validation failed: {v[:20] if v else 'None'}...")
             raise ValueError('OPENAI_API_KEY must be provided and start with "sk-"')
+        print(f"✅ OPENAI_API_KEY validation passed: {v[:20]}...")
         return v
     
     @validator('qdrant_url')
@@ -1511,16 +1513,48 @@ app_start_time = time.time()
 
 if __name__ == "__main__":
     import os
-    # Use standard asyncio loop to avoid conflicts with RAGAS nest_asyncio
-    # Get port from environment variable (Render sets this automatically)
-    port = int(os.environ.get("PORT", 8000))
-    print(f"🚀 Starting FastAPI app on port {port}")
-    print(f"📍 Host: 0.0.0.0:{port}")
-    print(f"🔧 Environment PORT variable: {os.environ.get('PORT', 'NOT SET')}")
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=port,
-        reload=False,  # Disable reload in production
-        loop="asyncio"  # Force standard asyncio instead of uvloop
-    )
+    import sys
+    import traceback
+    
+    try:
+        print("=" * 50)
+        print("🚀 STARTING MAISTORAGE RAG API")
+        print("=" * 50)
+        
+        # Use standard asyncio loop to avoid conflicts with RAGAS nest_asyncio
+        # Get port from environment variable (Render sets this automatically)
+        port = int(os.environ.get("PORT", 8000))
+        print(f"🚀 Starting FastAPI app on port {port}")
+        print(f"📍 Host: 0.0.0.0:{port}")
+        print(f"🔧 Environment PORT variable: {os.environ.get('PORT', 'NOT SET')}")
+        print(f"🐍 Python version: {sys.version}")
+        print(f"📁 Working directory: {os.getcwd()}")
+        
+        # Print environment variables (without sensitive data)
+        print("🔧 Key environment variables:")
+        for key in ["ENVIRONMENT", "DEBUG", "LOG_LEVEL", "QDRANT_URL"]:
+            value = os.environ.get(key, "NOT SET")
+            if key == "QDRANT_URL" and value != "NOT SET":
+                # Mask the URL for security
+                value = value[:30] + "..." if len(value) > 30 else value
+            print(f"   {key}: {value}")
+        
+        print("🚀 Starting uvicorn server...")
+        uvicorn.run(
+            "main:app",
+            host="0.0.0.0",
+            port=port,
+            reload=False,  # Disable reload in production
+            loop="asyncio"  # Force standard asyncio instead of uvloop
+        )
+        
+    except Exception as e:
+        print("=" * 50)
+        print("💥 FATAL ERROR DURING STARTUP")
+        print("=" * 50)
+        print(f"Error: {str(e)}")
+        print(f"Type: {type(e).__name__}")
+        print("\nFull traceback:")
+        traceback.print_exc()
+        print("=" * 50)
+        sys.exit(1)
