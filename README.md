@@ -1,8 +1,9 @@
 # MAI Storage - Enterprise Agentic RAG Platform
 
-**🎯 Production-Ready | 🔬 Phase 12 Complete | 🚀 Enterprise-Grade**
+MAI Storage is a comprehensive **Agentic RAG (Retrieval Augmented Generation)** platform that combines traditional retrieval with intelligent multi-step reasoning workflows. Built with Next.js, Qdrant, FastAPI, and LangGraph, it delivers both speed and sophistication for enterprise knowledge applications.
 
-MAI Storage is a comprehensive **Agentic RAG (Retrieval Augmented Generation)** platform that combines traditional retrieval with intelligent multi-step reasoning workflows. Built with Next.js, FastAPI, and LangGraph, it delivers both speed and sophistication for enterprise knowledge applications.
+![MaiStorage Home Page](screenshots/home.png)
+![MaiStorage Chat Interface](screenshots/chat.png)
 
 ## ✨ Key Differentiators
 
