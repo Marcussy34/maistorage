@@ -642,16 +642,22 @@ export default function EvaluationPage() {
                           <div className="flex items-center">
                             {metric === 'avg_response_time_ms' 
                               ? getImprovementIcon(-data.improvement)
-                              : getImprovementIcon(data.improvement)
+                              : metric.includes('token') 
+                                ? getImprovementIcon(-data.improvement) // For token usage, negative improvement is positive
+                                : getImprovementIcon(data.improvement)
                             }
                             <span className={`ml-2 font-medium ${
                               metric === 'avg_response_time_ms' 
                                 ? getImprovementColor(-data.improvement)
-                                : getImprovementColor(data.improvement)
+                                : metric.includes('token')
+                                  ? getImprovementColor(-data.improvement) // For token usage, negative improvement is positive
+                                  : getImprovementColor(data.improvement)
                             }`}>
                               {metric.includes('time') 
                                 ? (data.improvement > 0 ? '+' : '') + data.improvement.toFixed(0) + 'ms'
-                                : (data.improvement_pct > 0 ? '+' : '') + data.improvement_pct.toFixed(1) + '%'
+                                : metric.includes('token')
+                                  ? (data.improvement_pct < 0 ? '+' : '') + Math.abs(data.improvement_pct).toFixed(1) + '%' // Show absolute value for token usage
+                                  : (data.improvement_pct > 0 ? '+' : '') + data.improvement_pct.toFixed(1) + '%'
                               }
                             </span>
                           </div>
