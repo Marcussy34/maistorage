@@ -1514,10 +1514,13 @@ if __name__ == "__main__":
     # Use standard asyncio loop to avoid conflicts with RAGAS nest_asyncio
     # Get port from environment variable (Render sets this automatically)
     port = int(os.environ.get("PORT", 8000))
+    print(f"🚀 Starting FastAPI app on port {port}")
+    print(f"📍 Host: 0.0.0.0:{port}")
+    print(f"🔧 Environment PORT variable: {os.environ.get('PORT', 'NOT SET')}")
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=port,
-        reload=True,
+        reload=False,  # Disable reload in production
         loop="asyncio"  # Force standard asyncio instead of uvloop
     )
