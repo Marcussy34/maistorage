@@ -252,7 +252,6 @@ sequenceDiagram
     participant P as Planner
     participant R as Retriever
     participant S as Synthesizer
-    participant C as Citation Engine
     participant V as Verifier
     participant L as LLM
 
@@ -272,11 +271,8 @@ sequenceDiagram
     G->>S: Synthesizer Node
     S->>L: Generate Multi-Source Answer
     L->>S: Comprehensive Response
-    S->>G: Synthesis Complete
-    
-    G->>C: Citation Engine
-    C->>C: Generate Sentence Citations
-    C->>G: Attribution Results
+    S->>S: Generate Sentence Citations
+    S->>G: Answer + Citations Complete
     
     G->>V: Verifier Node
     V->>L: Validate Quality & Coverage
