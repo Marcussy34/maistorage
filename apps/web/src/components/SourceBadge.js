@@ -271,7 +271,7 @@ export function SourceBadge({
           {/* Content preview */}
           <div className="text-sm text-muted-foreground">
             <p className="leading-relaxed">
-              "{citation.content || citation.text_snippet || 'No preview available'}"
+              &ldquo;{citation.content || citation.text_snippet || 'No preview available'}&rdquo;
             </p>
           </div>
 

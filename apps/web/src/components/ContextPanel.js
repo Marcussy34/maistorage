@@ -226,7 +226,7 @@ export function ContextPanel({
 
         {query && (
           <div className="text-sm text-muted-foreground">
-            Query: "{query}"
+            Query: &ldquo;{query}&rdquo;
           </div>
         )}
       </div>
