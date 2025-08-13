@@ -310,8 +310,8 @@ export function useStreamingChat() {
       const reader = response.body.getReader()
       const decoder = new TextDecoder()
 
-      // Remove loading indicator and prepare for assistant response
-      setMessages(prev => prev.slice(0, -1))
+      // Keep loading indicator until we start receiving content
+      // We'll remove it when we get the first token or other content
       
       let assistantMessage = {
         type: 'assistant',
@@ -326,7 +326,7 @@ export function useStreamingChat() {
         id: Date.now() + 2
       }
 
-      setMessages(prev => [...prev, assistantMessage])
+      let assistantMessageAdded = false
 
       let buffer = ''
 
@@ -352,6 +352,16 @@ export function useStreamingChat() {
           console.log('Received streaming data:', data)
           
           if (data.type === 'token') {
+            // On first token, remove loading indicator and add assistant message
+            if (!assistantMessageAdded) {
+              setMessages(prev => {
+                // Remove loading message and add assistant message
+                const newMessages = prev.slice(0, -1)
+                return [...newMessages, assistantMessage]
+              })
+              assistantMessageAdded = true
+            }
+            
             // Append token to current assistant message
             setMessages(prev => {
               const newMessages = [...prev]
@@ -365,6 +375,16 @@ export function useStreamingChat() {
               return newMessages
             })
           } else if (data.type === 'step_start' || data.type === 'step_complete' || data.type === 'verification') {
+            // On first event, remove loading indicator and add assistant message if not already done
+            if (!assistantMessageAdded) {
+              setMessages(prev => {
+                // Remove loading message and add assistant message
+                const newMessages = prev.slice(0, -1)
+                return [...newMessages, assistantMessage]
+              })
+              assistantMessageAdded = true
+            }
+            
             // Add trace events for agentic workflow
             setMessages(prev => {
               const newMessages = [...prev]
@@ -378,6 +398,16 @@ export function useStreamingChat() {
               return newMessages
             })
           } else if (data.type === 'sources') {
+            // On first event, remove loading indicator and add assistant message if not already done
+            if (!assistantMessageAdded) {
+              setMessages(prev => {
+                // Remove loading message and add assistant message
+                const newMessages = prev.slice(0, -1)
+                return [...newMessages, assistantMessage]
+              })
+              assistantMessageAdded = true
+            }
+            
             // Add sources/citations to current assistant message
             setMessages(prev => {
               const newMessages = [...prev]
@@ -392,6 +422,16 @@ export function useStreamingChat() {
               return newMessages
             })
           } else if (data.type === 'answer') {
+            // On first event, remove loading indicator and add assistant message if not already done
+            if (!assistantMessageAdded) {
+              setMessages(prev => {
+                // Remove loading message and add assistant message
+                const newMessages = prev.slice(0, -1)
+                return [...newMessages, assistantMessage]
+              })
+              assistantMessageAdded = true
+            }
+            
             // Handle complete answer with all metadata
             setMessages(prev => {
               const newMessages = [...prev]
@@ -416,6 +456,16 @@ export function useStreamingChat() {
               return newMessages
             })
           } else if (data.type === 'metrics') {
+            // On first event, remove loading indicator and add assistant message if not already done
+            if (!assistantMessageAdded) {
+              setMessages(prev => {
+                // Remove loading message and add assistant message
+                const newMessages = prev.slice(0, -1)
+                return [...newMessages, assistantMessage]
+              })
+              assistantMessageAdded = true
+            }
+            
             // Add metrics to current assistant message
             setMessages(prev => {
               const newMessages = [...prev]
@@ -444,9 +494,12 @@ export function useStreamingChat() {
     } catch (error) {
       console.error('Streaming error:', error)
       
-      // Remove loading message and add error message
+      // Remove loading message (if still present) and add error message
       setMessages(prev => {
-        const newMessages = prev.slice(0, -1)
+        // Find and remove loading message if it exists
+        const hasLoadingMessage = prev[prev.length - 1]?.type === 'loading'
+        const newMessages = hasLoadingMessage ? prev.slice(0, -1) : prev
+        
         return [...newMessages, {
           type: 'error',
           content: error.name === 'AbortError' 
