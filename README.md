@@ -8,6 +8,8 @@ MAI Storage is a comprehensive **Agentic RAG (Retrieval Augmented Generation)** 
 ![MaiStorage Chat Interface](screenshots/chat.png)
 *MaiStorage Chat Interface*
 
+Check out the deployed **Live Demo**:  👉 [Click here to try it out](https://maistorage.vercel.app/)
+
 ## ✨ Key Differentiators
 
 ### 🤖 **Dual RAG Capabilities**
