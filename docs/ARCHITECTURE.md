@@ -277,11 +277,11 @@ sequenceDiagram
     R->>R: Deduplicate & Rerank Combined Results
     R->>G: Retrieved Context (emit sources event)
     
-    G->>S: Synthesizer Node
-    S->>L: Generate Multi-Source Answer
-    L->>S: Comprehensive Response
-    S->>S: Generate Sentence Citations
-    S->>G: Answer + Citations Complete
+    G->>S: Synthesizer Node Execution
+    S->>L: Generate Answer from Context
+    L->>S: Generated Response + Token Usage
+    S->>S: Optional Sentence-level Citations
+    S->>G: Answer Complete (emit completion event)
     
     G->>V: Verifier Node Execution
     V->>L: Validate Quality & Faithfulness
