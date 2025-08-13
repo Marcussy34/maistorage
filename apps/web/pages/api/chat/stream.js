@@ -66,24 +66,41 @@ export default async function handler(req, res) {
 
     const reader = backendResponse.body.getReader()
     const decoder = new TextDecoder()
+    let sseBuffer = ''
 
     try {
       while (true) {
         const { done, value } = await reader.read()
-        
         if (done) break
 
-        // Decode and process the chunk
-        const chunk = decoder.decode(value, { stream: true })
-        
-        // Handle Server-Sent Events format from FastAPI
-        const lines = chunk.split('\n')
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const jsonData = line.substring(6) // Remove "data: " prefix
-            if (jsonData.trim()) {
-              res.write(jsonData + '\n') // Convert to NDJSON format
+        // Append decoded text to buffer (normalize CRLF to LF)
+        sseBuffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n')
+
+        // SSE events are separated by a blank line (\n\n)
+        const events = sseBuffer.split('\n\n')
+        sseBuffer = events.pop() || '' // keep residual partial event
+
+        for (const rawEvent of events) {
+          if (!rawEvent) continue
+          // Each event can have multiple data: lines; concatenate them
+          const dataLines = []
+          for (const line of rawEvent.split('\n')) {
+            if (line.startsWith('data:')) {
+              // Remove the leading 'data:' and optional space
+              dataLines.push(line.slice(5).replace(/^\s/, ''))
             }
+          }
+          if (dataLines.length === 0) continue
+
+          // Join all data lines; trim stray wrapping quotes if present
+          let jsonLine = dataLines.join('')
+          const trimmed = jsonLine.trim()
+          const normalized = (trimmed.startsWith('"') && trimmed.endsWith('"'))
+            ? trimmed.slice(1, -1)
+            : trimmed
+
+          if (normalized) {
+            res.write(normalized + '\n')
           }
         }
       }

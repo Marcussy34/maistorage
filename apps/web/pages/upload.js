@@ -284,26 +284,71 @@ export default function UploadPage() {
       // Update all files to uploading status
       setFiles(prevFiles => prevFiles.map(f => ({ ...f, status: 'uploading', progress: 0 })));
 
-      const formData = new FormData();
-      files.forEach(fileObj => {
-        formData.append('files', fileObj.file);
-      });
+      // Prefer JSON uploads to avoid multipart issues on serverless (Vercel)
+      const toDataURL = (file) =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
 
-      const response = await fetch('/api/upload', {
+      const jsonFiles = await Promise.all(
+        files.map(async (fileObj) => ({
+          name: fileObj.file.name,
+          content: await toDataURL(fileObj.file), // data:...;base64,...
+        }))
+      );
+
+      // Send directly to Cloud Run via Vercel rewrite
+      const response = await fetch('/api/rag/ingest', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          // Prefer base64 payload key to avoid any platform filtering
+          files: jsonFiles.map(f => ({
+            name: f.name,
+            content_base64: (typeof f.content === 'string' && f.content.includes('base64,'))
+              ? f.content.split('base64,').pop()
+              : f.content
+          }))
+        }),
       });
 
       if (!response.ok) {
         throw new Error(`Upload failed: ${response.statusText}`);
       }
 
-      const result = await response.json();
-      setUploadResults(result);
+      const ragResp = await response.json();
+
+      // Map Cloud Run response to UI structure
+      const mappedResult = {
+        success: !!ragResp?.success,
+        files: files.map(f => ({
+          name: f.file.name,
+          success: !!ragResp?.success,
+          error: ragResp?.success ? null : (ragResp?.error || 'Ingestion failed')
+        })),
+        summary: {
+          total_files: files.length,
+          successful_uploads: ragResp?.success ? files.length : 0,
+          failed_uploads: ragResp?.success ? 0 : files.length,
+          total_chunks: ragResp?.stored_chunks ?? 0,
+          processed_files: ragResp?.success ? files.length : 0,
+          processing_time_ms: 0,
+          collection_info: null
+        },
+        ingestion: {
+          success: !!ragResp?.success,
+          details: ragResp
+        }
+      };
+
+      setUploadResults(mappedResult);
 
       // Update file statuses based on results
       setFiles(prevFiles => prevFiles.map(fileObj => {
-        const uploadedFile = result.files?.find(f => f.name === fileObj.file.name);
+        const uploadedFile = mappedResult.files?.find(f => f.name === fileObj.file.name);
         if (uploadedFile) {
           return {
             ...fileObj,

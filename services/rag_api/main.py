@@ -85,6 +85,11 @@ from models import (
 import psutil
 import subprocess
 from retrieval import HybridRetriever
+import base64
+import uuid
+from qdrant_client import QdrantClient
+from qdrant_client.http import models as qmodels
+from openai import OpenAI
 from rag_baseline import BaselineRAG, RAGRequest, RAGResponse, create_baseline_rag
 from llm_client import LLMConfig
 from graph import AgenticRAG, create_agentic_rag, TraceEvent, TraceEventType
@@ -131,6 +136,7 @@ class Settings(BaseSettings):
     max_query_length: int = Field(default=8192, description="Max query length in characters")
     max_top_k: int = Field(default=100, description="Maximum top_k for retrieval")
     request_timeout: int = Field(default=300, description="Request timeout in seconds")
+    collection_name: str = Field(default="maistorage_documents", description="Qdrant collection name")
     
     # Rate limiting
     rate_limit_requests: int = Field(default=100, description="Rate limit requests per minute")
@@ -701,6 +707,96 @@ async def get_stats_legacy(retriever_instance: HybridRetriever = Depends(get_ret
             detail="Failed to retrieve statistics"
         )
 
+
+@app.post("/ingest", response_model=dict)
+async def ingest_documents_api(request: Request):
+    """Ingest documents: expects JSON { files|documents|items: [{name, content_base64|content}]}"""
+    try:
+        payload = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body")
+
+    items = None
+    for key in ("files", "documents", "items"):
+        if isinstance(payload.get(key), list):
+            items = payload[key]
+            break
+    if not items:
+        raise HTTPException(status_code=400, detail="No files provided")
+
+    # Init clients
+    openai_client = OpenAI(api_key=settings.openai_api_key)
+    qdrant = QdrantClient(url=settings.qdrant_url, api_key=settings.qdrant_api_key, timeout=settings.qdrant_timeout)
+
+    # Ensure collection exists (1536 dims for text-embedding-3-small)
+    try:
+        qdrant.get_collection(settings.collection_name)
+    except Exception:
+        qdrant.recreate_collection(
+            collection_name=settings.collection_name,
+            vectors_config=qmodels.VectorParams(size=1536, distance=qmodels.Distance.COSINE)
+        )
+
+    total_chunks = 0
+    stored = 0
+
+    for it in items:
+        name = it.get("name", f"doc-{uuid.uuid4()}.txt")
+        content_field = it.get("content_base64") or it.get("base64") or it.get("content")
+        if not content_field:
+            continue
+        # Accept data URLs
+        base64_str = content_field.split("base64,")[-1] if isinstance(content_field, str) else content_field
+        try:
+            text = base64.b64decode(base64_str).decode("utf-8", errors="ignore")
+        except Exception:
+            # If not base64, assume plain text
+            text = str(content_field)
+
+        # Simple chunking
+        def chunk_text(t: str, size: int = 500, overlap: int = 100):
+            out = []
+            start = 0
+            while start < len(t):
+                end = min(start + size, len(t))
+                out.append({"text": t[start:end], "start_index": start, "char_count": end - start})
+                if end >= len(t):
+                    break
+                start = end - overlap
+            return out
+
+        chunks = chunk_text(text)
+        if not chunks:
+            continue
+        total_chunks += len(chunks)
+
+        # Embeddings
+        emb_resp = openai_client.embeddings.create(model=settings.embedding_model, input=[c["text"] for c in chunks])
+        vectors = [d.embedding for d in emb_resp.data]
+
+        points = []
+        for idx, (ch, vec) in enumerate(zip(chunks, vectors)):
+            points.append(
+                qmodels.PointStruct(
+                    id=str(uuid.uuid4()),
+                    vector=vec,
+                    payload={
+                        "doc_name": name,
+                        "doc_type": ".txt",
+                        "chunk_index": idx,
+                        "total_chunks": len(chunks),
+                        "text": ch["text"],
+                        "char_count": ch["char_count"],
+                        "start_index": ch["start_index"],
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                )
+            )
+
+        qdrant.upsert(collection_name=settings.collection_name, points=points)
+        stored += len(points)
+
+    return {"success": True, "stored_chunks": stored, "total_chunks": total_chunks}
 
 @app.post("/cache/clear", response_model=dict)
 async def clear_cache(retriever_instance: HybridRetriever = Depends(get_retriever)):

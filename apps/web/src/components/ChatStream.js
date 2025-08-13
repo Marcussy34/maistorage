@@ -32,6 +32,51 @@ function parseNDJSONLine(line) {
   }
 }
 
+// Best-effort extraction of an answer string from any event shape
+function extractAnswerFromEvent(evt) {
+  try {
+    const candidates = []
+    if (!evt || typeof evt !== 'object') return ''
+
+    // Direct fields
+    if (typeof evt.content === 'string') candidates.push(evt.content)
+    if (typeof evt.answer === 'string') candidates.push(evt.answer)
+
+    // Nested common containers
+    const d = evt.data || {}
+    if (typeof d.answer === 'string') candidates.push(d.answer)
+    if (typeof d.final_answer === 'string') candidates.push(d.final_answer)
+    if (typeof d.output === 'string') candidates.push(d.output)
+    if (typeof d.message === 'string') candidates.push(d.message)
+    if (typeof d.result === 'string') candidates.push(d.result)
+
+    // Pick the longest non-empty string to be safe
+    const nonEmpty = candidates.filter(s => typeof s === 'string' && s.trim().length > 0)
+    if (nonEmpty.length === 0) return ''
+    return nonEmpty.sort((a, b) => b.length - a.length)[0]
+  } catch {
+    return ''
+  }
+}
+
+// Dedupe helper for sources/citations while preserving order
+function dedupeSources(list) {
+  if (!Array.isArray(list)) return list
+  const seen = new Set()
+  const keyOf = (s) => {
+    const name = (s.doc_name || '').toLowerCase().trim()
+    const idx = s.chunk_index ?? s.chunkIndex ?? 0
+    const snippet = (s.text_snippet || s.snippet || '').toLowerCase().trim()
+    return `${name}#${idx}#${snippet}`
+  }
+  return list.filter((s) => {
+    const k = keyOf(s)
+    if (seen.has(k)) return false
+    seen.add(k)
+    return true
+  })
+}
+
 /**
  * ChatStream component for displaying streaming chat responses
  * Handles NDJSON parsing and real-time token display
@@ -343,6 +388,16 @@ export function useStreamingChat() {
 
       let buffer = ''
 
+      // Track the latest finalized payload so we can commit it on 'done'
+      // This prevents an empty message when only step events were streamed
+      // and the final answer arrived just before completion.
+      let latestAnswer = ''
+      let latestCitations = null
+      let latestSources = null
+      let latestMetrics = null
+      let latestSentenceAttribution = null
+      let latestRefinementCount = 0
+
       while (true) {
         const { done, value } = await reader.read()
         
@@ -421,15 +476,15 @@ export function useStreamingChat() {
               assistantMessageAdded = true
             }
             
-            // Add sources/citations to current assistant message
+            // Add sources/citations to current assistant message (deduped)
             setMessages(prev => {
               const newMessages = [...prev]
               const lastMessage = newMessages[newMessages.length - 1]
               if (lastMessage && lastMessage.type === 'assistant') {
                 newMessages[newMessages.length - 1] = {
                   ...lastMessage,
-                  citations: data.citations,
-                  sources: data.data?.sources || data.citations
+                  citations: dedupeSources(data.citations),
+                  sources: dedupeSources(data.data?.sources || data.citations)
                 }
               }
               return newMessages
@@ -466,8 +521,8 @@ export function useStreamingChat() {
                 newMessages[newMessages.length - 1] = {
                   ...lastMessage,
                   content: data.content || lastMessage.content,
-                  citations: data.citations || lastMessage.citations,
-                  sources: data.citations || lastMessage.sources,
+                  citations: dedupeSources(data.citations || lastMessage.citations),
+                  sources: dedupeSources(data.citations || lastMessage.sources),
                   sentence_attribution: data.sentence_attribution,
                   metrics: metrics,
                   refinementCount: data.metadata?.refinement_count || 0
@@ -477,6 +532,20 @@ export function useStreamingChat() {
               }
               return newMessages
             })
+
+            // Capture latest payload to commit again on 'done' if needed
+            latestAnswer = extractAnswerFromEvent(data) || latestAnswer
+            latestCitations = dedupeSources(data.citations) || latestCitations
+            latestSources = dedupeSources(data.citations) || latestSources
+            latestSentenceAttribution = data.sentence_attribution || latestSentenceAttribution
+            latestRefinementCount = data.metadata?.refinement_count ?? latestRefinementCount
+            latestMetrics = (() => {
+              const m = data.metadata || latestMetrics || {}
+              if (m.tokens_used && typeof m.tokens_used === 'object') {
+                m.total_tokens = m.tokens_used.total_tokens || m.tokens_used.total || 0
+              }
+              return m
+            })()
           } else if (data.type === 'metrics') {
             // On first event, remove loading indicator and add assistant message if not already done
             if (!assistantMessageAdded) {
@@ -507,8 +576,45 @@ export function useStreamingChat() {
               return newMessages
             })
           } else if (data.type === 'done') {
-            // Streaming complete
-            break
+            // Streaming complete. Ensure assistant message has the final answer.
+            setMessages(prev => {
+              const newMessages = [...prev]
+              // If last message is loading, replace it with assistant message
+              if (!assistantMessageAdded) {
+                const withoutLoading = newMessages.slice(0, -1)
+                withoutLoading.push({
+                  ...assistantMessage,
+                  content: latestAnswer || extractAnswerFromEvent(data) || '',
+                  citations: latestCitations,
+                  sources: latestSources,
+                  sentence_attribution: latestSentenceAttribution,
+                  metrics: latestMetrics,
+                  refinementCount: latestRefinementCount
+                })
+                assistantMessageAdded = true
+                return withoutLoading
+              }
+
+              const lastMessage = newMessages[newMessages.length - 1]
+              if (lastMessage && lastMessage.type === 'assistant') {
+                const extracted = extractAnswerFromEvent(data)
+                const finalContent = (lastMessage.content && lastMessage.content.length > 0)
+                  ? lastMessage.content
+                  : (latestAnswer || extracted || '')
+                newMessages[newMessages.length - 1] = {
+                  ...lastMessage,
+                  content: finalContent,
+                  citations: dedupeSources(lastMessage.citations || latestCitations),
+                  sources: dedupeSources(lastMessage.sources || latestSources),
+                  sentence_attribution: lastMessage.sentence_attribution || latestSentenceAttribution,
+                  metrics: lastMessage.metrics || latestMetrics,
+                  refinementCount: lastMessage.refinementCount || latestRefinementCount
+                }
+              }
+              return newMessages
+            })
+            // Do NOT break here; some backends may emit an 'answer' after an early 'done'.
+            // We keep reading until the stream naturally ends.
           }
         }
       }
