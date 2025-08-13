@@ -1,7 +1,7 @@
 # MAI Storage - System Architecture
 
 **Version**: Phase 12 Complete  
-**Last Updated**: January 2025  
+**Last Updated**: August 2025  
 **System Status**: Production-Ready Agentic RAG Platform
 
 ## Overview
@@ -231,7 +231,11 @@ sequenceDiagram
     
     par Parallel Search
         R->>Q: Dense Vector Search
-        R->>R: In-Memory BM25 Search
+        Q->>R: Vector Results
+        R->>Q: Get Documents (for BM25)
+        Q->>R: Document Data
+        R->>R: Build BM25 Index + Search
+        R->>R: BM25 Results
     end
     
     R->>R: RRF Fusion + Reranking + MMR
