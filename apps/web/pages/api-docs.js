@@ -614,7 +614,7 @@ curl -X POST http://localhost:8000/api/search \\
                     whileTap={{ scale: 0.95 }}
                   >
                     <Button variant="outline" size="lg" asChild>
-                      <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer">
+                      <a href="https://maistorage-backend-mytfom2tca-as.a.run.app/docs" target="_blank" rel="noopener noreferrer">
                         <Server className="h-5 w-5 mr-2" />
                         Interactive API Docs
                       </a>

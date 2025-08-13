@@ -252,9 +252,12 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "https://maistorage.vercel.app",  # Your specific Vercel URL
+        "https://maistorage-deploy.vercel.app",  # Alternative URL pattern
+        "https://maistorage-git-main-marcussy34.vercel.app",  # Git branch URL pattern
+        "https://maistorage-marcussy34.vercel.app",  # User-based URL pattern
+        "https://maistorage-er8qf2f2p-marcus-tans-projects-0956f18f.vercel.app",  # Current deployment URL
         "https://*.vercel.app",  # Allow all Vercel subdomains
-        "https://vercel.app",    # Allow Vercel domains
-        "https://your-actual-vercel-url.vercel.app",  # Add your specific URL here
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -299,7 +302,8 @@ async def initialize_services_background():
             qdrant_url=settings.qdrant_url,
             embedding_model=settings.embedding_model,
             reranker_model=settings.reranker_model,
-            openai_api_key=settings.openai_api_key
+            openai_api_key=settings.openai_api_key,
+            qdrant_api_key=settings.qdrant_api_key
         )
         
         print("✅ Hybrid retriever initialized successfully")
@@ -347,7 +351,8 @@ async def initialize_services_sync():
             qdrant_url=settings.qdrant_url,
             embedding_model=settings.embedding_model,
             reranker_model=settings.reranker_model,
-            openai_api_key=settings.openai_api_key
+            openai_api_key=settings.openai_api_key,
+            qdrant_api_key=settings.qdrant_api_key
         )
         
         print("✅ Hybrid retriever initialized successfully")
@@ -777,6 +782,12 @@ async def chat_stream(
                         max_refinements=request.max_refinements
                     )
                     
+                    # Debug logging
+                    logger.info(f"🎯 Final state keys: {list(final_state.keys())}")
+                    logger.info(f"🎯 Final state answer: '{final_state.get('answer', 'NOT_FOUND')}'")
+                    logger.info(f"🎯 Final state answer length: {len(final_state.get('answer', ''))}")
+                    logger.info(f"🎯 Final state citations count: {len(final_state.get('citations', []))}")
+                    
                     # Stream trace events
                     if request.stream_traces:
                         for trace_event in final_state.get("trace_events", []):
@@ -786,7 +797,7 @@ async def chat_stream(
                                 "step": trace_event.step.value if trace_event.step else None,
                                 "data": trace_event.data
                             }
-                            yield f"data: {json.dumps(event_data)}\n\n"
+                            yield f"data: {json.dumps(event_data, ensure_ascii=False, separators=(',', ':'))}\n\n"
                             
                             # Small delay to allow client processing
                             await asyncio.sleep(0.01)
@@ -805,7 +816,7 @@ async def chat_stream(
                             "total_tokens": final_state.get("tokens_used", {}).get("total_tokens", 0)
                         }
                     }
-                    yield f"data: {json.dumps(answer_data)}\n\n"
+                    yield f"data: {json.dumps(answer_data, ensure_ascii=False, separators=(',', ':'))}\n\n"
                     
                     # Final done event
                     done_data = {
@@ -813,7 +824,7 @@ async def chat_stream(
                         "success": True,
                         "timestamp": datetime.utcnow().isoformat()
                     }
-                    yield f"data: {json.dumps(done_data)}\n\n"
+                    yield f"data: {json.dumps(done_data, ensure_ascii=False, separators=(',', ':'))}\n\n"
                     
                 except Exception as e:
                     logger.error(f"Agentic stream failed: {e}")
@@ -822,7 +833,7 @@ async def chat_stream(
                         "error": str(e),
                         "timestamp": datetime.utcnow().isoformat()
                     }
-                    yield f"data: {json.dumps(error_data)}\n\n"
+                    yield f"data: {json.dumps(error_data, ensure_ascii=False, separators=(',', ':'))}\n\n"
             
             return StreamingResponse(
                 agentic_stream_generator(),
@@ -856,7 +867,7 @@ async def chat_stream(
                         "timestamp": datetime.utcnow().isoformat(),
                         "data": {"query": request.query}
                     }
-                    yield f"data: {json.dumps(start_data)}\n\n"
+                    yield f"data: {json.dumps(start_data, ensure_ascii=False, separators=(',', ':'))}\n\n"
                     await asyncio.sleep(0.05)
                     
                     # Emit sources event
@@ -875,7 +886,7 @@ async def chat_stream(
                             ]
                         }
                     }
-                    yield f"data: {json.dumps(sources_data)}\n\n"
+                    yield f"data: {json.dumps(sources_data, ensure_ascii=False, separators=(',', ':'))}\n\n"
                     await asyncio.sleep(0.05)
                     
                     # Simulate token streaming by splitting answer into words
@@ -890,7 +901,7 @@ async def chat_stream(
                             "partial_answer": answer_so_far.strip(),
                             "timestamp": datetime.utcnow().isoformat()
                         }
-                        yield f"data: {json.dumps(token_data)}\n\n"
+                        yield f"data: {json.dumps(token_data, ensure_ascii=False, separators=(',', ':'))}\n\n"
                         await asyncio.sleep(0.05)  # 50ms delay between words
                     
                     # Emit completion event
@@ -900,7 +911,7 @@ async def chat_stream(
                         "timestamp": datetime.utcnow().isoformat(),
                         "data": {"time_ms": total_time}
                     }
-                    yield f"data: {json.dumps(complete_data)}\n\n"
+                    yield f"data: {json.dumps(complete_data, ensure_ascii=False, separators=(',', ':'))}\n\n"
                     
                     # Stream final answer data
                     answer_data = {
@@ -922,7 +933,7 @@ async def chat_stream(
                             "tokens_used": rag_response.tokens_used
                         }
                     }
-                    yield f"data: {json.dumps(answer_data)}\n\n"
+                    yield f"data: {json.dumps(answer_data, ensure_ascii=False, separators=(',', ':'))}\n\n"
                     
                     # Final done event
                     done_data = {
@@ -930,7 +941,7 @@ async def chat_stream(
                         "success": True,
                         "timestamp": datetime.utcnow().isoformat()
                     }
-                    yield f"data: {json.dumps(done_data)}\n\n"
+                    yield f"data: {json.dumps(done_data, ensure_ascii=False, separators=(',', ':'))}\n\n"
                     
                 except Exception as e:
                     logger.error(f"Baseline stream failed: {e}")
@@ -939,7 +950,7 @@ async def chat_stream(
                         "error": str(e),
                         "timestamp": datetime.utcnow().isoformat()
                     }
-                    yield f"data: {json.dumps(error_data)}\n\n"
+                    yield f"data: {json.dumps(error_data, ensure_ascii=False, separators=(',', ':'))}\n\n"
             
             return StreamingResponse(
                 baseline_stream_generator(),

@@ -6,7 +6,9 @@ synthesizer, and verifier nodes using LangGraph's StateGraph architecture.
 """
 
 import asyncio
+import json
 import logging
+import re
 import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional, TypedDict, Annotated
@@ -24,6 +26,33 @@ from prompts.verifier import format_verifier_prompt, format_faithfulness_check
 from citer import SentenceCitationEngine, create_citation_engine
 
 logger = logging.getLogger(__name__)
+
+
+def safe_text_for_json(text: str, max_length: int = 500) -> str:
+    """
+    Safely prepare text content for JSON serialization.
+    
+    Args:
+        text: Raw text that may contain problematic characters
+        max_length: Maximum length to truncate to
+        
+    Returns:
+        Safe text that won't break JSON parsing
+    """
+    if not text:
+        return ""
+    
+    # Remove control characters that can break JSON
+    text = re.sub(r'[\x00-\x1f\x7f-\x9f]', ' ', text)
+    
+    # Replace problematic quotes and backslashes
+    text = text.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r')
+    
+    # Truncate if too long
+    if len(text) > max_length:
+        text = text[:max_length] + "..."
+    
+    return text
 
 
 class AgentStep(str, Enum):
@@ -211,12 +240,13 @@ class AgenticRAG:
             # Calculate step time
             step_time = (time.time() - start_time) * 1000
             
-            # Emit completion event
+            # Emit completion event with safely handled plan content
             completion_event = TraceEvent(
                 event_type=TraceEventType.STEP_COMPLETE,
                 step=AgentStep.PLANNER,
                 data={
-                    "plan": plan_content,
+                    "plan": safe_text_for_json(plan_content),
+                    "plan_length": len(plan_content),
                     "key_concepts": key_concepts,
                     "sub_queries": sub_queries,
                     "time_ms": step_time
@@ -241,7 +271,7 @@ class AgenticRAG:
             error_event = TraceEvent(
                 event_type=TraceEventType.STEP_COMPLETE,
                 step=AgentStep.PLANNER,
-                data={"error": str(e), "time_ms": (time.time() - start_time) * 1000}
+                data={"error": safe_text_for_json(str(e)), "time_ms": (time.time() - start_time) * 1000}
             )
             
             # Fallback: use original query without planning
@@ -352,7 +382,7 @@ class AgenticRAG:
             error_event = TraceEvent(
                 event_type=TraceEventType.STEP_COMPLETE,
                 step=AgentStep.RETRIEVER,
-                data={"error": str(e), "time_ms": (time.time() - start_time) * 1000}
+                data={"error": safe_text_for_json(str(e)), "time_ms": (time.time() - start_time) * 1000}
             )
             
             new_trace_events = state.get("trace_events", [])
@@ -481,7 +511,7 @@ class AgenticRAG:
             error_event = TraceEvent(
                 event_type=TraceEventType.STEP_COMPLETE,
                 step=AgentStep.SYNTHESIZER,
-                data={"error": str(e), "time_ms": (time.time() - start_time) * 1000}
+                data={"error": safe_text_for_json(str(e)), "time_ms": (time.time() - start_time) * 1000}
             )
             
             new_trace_events = state.get("trace_events", [])
@@ -542,7 +572,7 @@ class AgenticRAG:
                 event_type=TraceEventType.VERIFICATION,
                 step=AgentStep.VERIFIER,
                 data={
-                    "verification": verification_content,
+                    "verification": safe_text_for_json(verification_content),
                     "needs_refinement": needs_refinement,
                     "will_refine": should_refine,
                     "refinement_count": refinement_count
@@ -565,7 +595,7 @@ class AgenticRAG:
             
             return {
                 "verification_result": {
-                    "content": verification_content,
+                    "content": safe_text_for_json(verification_content),
                     "needs_refinement": needs_refinement,
                     "passed": not needs_refinement
                 },
@@ -581,14 +611,14 @@ class AgenticRAG:
             error_event = TraceEvent(
                 event_type=TraceEventType.STEP_COMPLETE,
                 step=AgentStep.VERIFIER,
-                data={"error": str(e), "time_ms": (time.time() - start_time) * 1000}
+                data={"error": safe_text_for_json(str(e)), "time_ms": (time.time() - start_time) * 1000}
             )
             
             new_trace_events = state.get("trace_events", [])
             new_trace_events.extend([trace_event, error_event])
             
             return {
-                "verification_result": {"passed": True, "error": str(e)},
+                "verification_result": {"passed": True, "error": safe_text_for_json(str(e))},
                 "needs_refinement": False,
                 "current_step": AgentStep.DONE,
                 "trace_events": new_trace_events
@@ -805,7 +835,7 @@ class AgenticRAG:
                 "trace_events": [
                     TraceEvent(
                         event_type=TraceEventType.DONE,
-                        data={"success": False, "error": str(e)}
+                        data={"success": False, "error": safe_text_for_json(str(e))}
                     )
                 ],
                 "total_time_ms": (time.time() - start_time) * 1000

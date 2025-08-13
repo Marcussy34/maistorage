@@ -137,7 +137,16 @@ function runIngestion(uploadDir) {
 async function getCollectionInfo() {
   try {
     const QDRANT_URL = process.env.QDRANT_URL || 'http://localhost:6333';
-    const response = await fetch(`${QDRANT_URL}/collections/maistorage_documents`);
+    const QDRANT_API_KEY = process.env.QDRANT_API_KEY || '';
+    
+    const headers = {};
+    if (QDRANT_API_KEY) {
+      headers['api-key'] = QDRANT_API_KEY;
+    }
+    
+    const response = await fetch(`${QDRANT_URL}/collections/maistorage_documents`, {
+      headers
+    });
     
     if (response.ok) {
       const data = await response.json();

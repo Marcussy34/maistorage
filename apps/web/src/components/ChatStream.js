@@ -12,9 +12,22 @@ import { MetricsChips, CompactMetrics } from './MetricsChips'
  */
 function parseNDJSONLine(line) {
   try {
-    return JSON.parse(line.trim())
+    const trimmedLine = line.trim()
+    if (!trimmedLine) return null
+    
+    return JSON.parse(trimmedLine)
   } catch (error) {
-    console.warn('Failed to parse NDJSON line:', line, error)
+    console.warn('Failed to parse NDJSON line:', {
+      line: line.substring(0, 200) + (line.length > 200 ? '...' : ''),
+      length: line.length,
+      error: error.message
+    })
+    
+    // Try to handle incomplete JSON by checking if it looks like it was truncated
+    if (error.message.includes('Unterminated string') || error.message.includes('Unexpected end')) {
+      console.warn('JSON appears to be truncated, this might be a streaming issue')
+    }
+    
     return null
   }
 }
@@ -422,6 +435,10 @@ export function useStreamingChat() {
               return newMessages
             })
           } else if (data.type === 'answer') {
+            console.log('🎯 Received answer event:', data)
+            console.log('🎯 Answer content:', data.content)
+            console.log('🎯 Answer content length:', data.content?.length)
+            
             // On first event, remove loading indicator and add assistant message if not already done
             if (!assistantMessageAdded) {
               setMessages(prev => {
@@ -443,6 +460,9 @@ export function useStreamingChat() {
                   metrics.total_tokens = metrics.tokens_used.total_tokens || metrics.tokens_used.total || 0
                 }
                 
+                console.log('🎯 Before update - lastMessage content:', lastMessage.content)
+                console.log('🎯 Setting content to:', data.content || lastMessage.content)
+                
                 newMessages[newMessages.length - 1] = {
                   ...lastMessage,
                   content: data.content || lastMessage.content,
@@ -452,6 +472,8 @@ export function useStreamingChat() {
                   metrics: metrics,
                   refinementCount: data.metadata?.refinement_count || 0
                 }
+                
+                console.log('🎯 After update - message content:', newMessages[newMessages.length - 1].content)
               }
               return newMessages
             })

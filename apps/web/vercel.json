@@ -8,11 +8,15 @@
   "regions": ["iad1"],
   "env": {
     "RAG_API_URL": "https://maistorage-backend-mytfom2tca-as.a.run.app",
+    "QDRANT_URL": "@qdrant_url",
+    "QDRANT_API_KEY": "@qdrant_api_key",
     "NEXT_PUBLIC_APP_ENV": "production"
   },
   "build": {
     "env": {
-      "RAG_API_URL": "https://maistorage-backend-mytfom2tca-as.a.run.app"
+      "RAG_API_URL": "https://maistorage-backend-mytfom2tca-as.a.run.app",
+      "QDRANT_URL": "@qdrant_url",
+      "QDRANT_API_KEY": "@qdrant_api_key"
     }
   },
   "functions": {

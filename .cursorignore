@@ -1,3 +1,4 @@
 !.env
 !.env.example
 !.env.example.bak
+!.env.cloudrun

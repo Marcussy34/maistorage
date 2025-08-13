@@ -61,7 +61,8 @@ class HybridRetriever:
                  embedding_model: str = "text-embedding-3-small",
                  reranker_model: str = "BAAI/bge-reranker-v2-m3",
                  openai_api_key: Optional[str] = None,
-                 config_path: Optional[str] = None):
+                 config_path: Optional[str] = None,
+                 qdrant_api_key: Optional[str] = None):
         """
         Initialize the optimized hybrid retriever with caching and performance tuning.
         
@@ -89,7 +90,8 @@ class HybridRetriever:
         )
         
         # Initialize clients with optimized parameters
-        self.qdrant_client = QdrantClient(url=qdrant_url)
+        # Use API key if provided (required for Qdrant Cloud). This prevents 401/403 errors.
+        self.qdrant_client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
         
         # Set up OpenAI client
         self.openai_client = openai.OpenAI(

@@ -7,14 +7,30 @@
 
 // Configuration
 const QDRANT_URL = process.env.QDRANT_URL || 'http://localhost:6333';
+const QDRANT_API_KEY = process.env.QDRANT_API_KEY || '';
 const COLLECTION_NAME = 'maistorage_documents';
+
+// Helper function to get Qdrant headers
+function getQdrantHeaders() {
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (QDRANT_API_KEY) {
+    headers['api-key'] = QDRANT_API_KEY;
+  }
+  
+  return headers;
+}
 
 /**
  * Get collection info from Qdrant
  */
 async function getCollectionInfo() {
   try {
-    const response = await fetch(`${QDRANT_URL}/collections/${COLLECTION_NAME}`);
+    const response = await fetch(`${QDRANT_URL}/collections/${COLLECTION_NAME}`, {
+      headers: getQdrantHeaders()
+    });
     
     if (response.ok) {
       const data = await response.json();
@@ -40,9 +56,7 @@ async function listDocuments() {
   try {
     const response = await fetch(`${QDRANT_URL}/collections/${COLLECTION_NAME}/points/scroll`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getQdrantHeaders(),
       body: JSON.stringify({
         limit: 1000, // Get first 1000 points to extract unique documents
         with_payload: true,
@@ -92,9 +106,7 @@ async function deleteDocument(docName) {
     // First, find all points belonging to this document
     const scrollResponse = await fetch(`${QDRANT_URL}/collections/${COLLECTION_NAME}/points/scroll`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getQdrantHeaders(),
       body: JSON.stringify({
         filter: {
           must: [
@@ -127,9 +139,7 @@ async function deleteDocument(docName) {
     // Delete the points
     const deleteResponse = await fetch(`${QDRANT_URL}/collections/${COLLECTION_NAME}/points/delete`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getQdrantHeaders(),
       body: JSON.stringify({
         points: pointIds
       })
@@ -173,7 +183,8 @@ async function resetCollection() {
     
     // Delete the entire collection
     const deleteResponse = await fetch(`${QDRANT_URL}/collections/${COLLECTION_NAME}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: getQdrantHeaders()
     });
 
     if (!deleteResponse.ok) {
