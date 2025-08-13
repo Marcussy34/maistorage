@@ -1,7 +1,7 @@
 # MAI Storage - System Architecture
 
 **Version**: Phase 12 Complete  
-**Last Updated**: August 2025  
+**Last Updated**: January 2025  
 **System Status**: Production-Ready Agentic RAG Platform
 
 ## Overview
@@ -258,6 +258,7 @@ sequenceDiagram
     participant P as Planner
     participant R as Retriever
     participant S as Synthesizer
+    participant C as Citation Engine
     participant V as Verifier
     participant L as LLM
 
@@ -277,11 +278,14 @@ sequenceDiagram
     R->>R: Deduplicate & Rerank Combined Results
     R->>G: Retrieved Context (emit sources event)
     
-    G->>S: Synthesizer Node Execution
-    S->>L: Generate Answer from Context
-    L->>S: Generated Response + Token Usage
-    S->>S: Optional Sentence-level Citations
-    S->>G: Answer Complete (emit completion event)
+    G->>S: Synthesizer Node
+    S->>L: Generate Multi-Source Answer
+    L->>S: Comprehensive Response
+    S->>G: Synthesis Complete
+    
+    G->>C: Citation Engine
+    C->>C: Generate Sentence Citations
+    C->>G: Attribution Results
     
     G->>V: Verifier Node Execution
     V->>L: Validate Quality & Faithfulness
