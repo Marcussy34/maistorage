@@ -13,7 +13,7 @@ REGION="asia-southeast1"
 IMAGE_NAME="gcr.io/$PROJECT_ID/$SERVICE_NAME"
 
 # Environment variables (replace with your actual values)
-ENV_VARS="OPENAI_API_KEY=***REMOVED***,QDRANT_URL=https://3b9a44d8-f019-49f8-92bd-84e10bd3c9ab.eu-central-1-0.aws.cloud.qdrant.io:6333/,QDRANT_API_KEY=***REMOVED***,ENVIRONMENT=production,DEBUG=false,LOG_LEVEL=INFO,OPENAI_BASE_URL=https://api.openai.com/v1,OPENAI_MODEL=gpt-4o-mini,EMBEDDING_MODEL=text-embedding-3-small"
+ENV_VARS="Use yours"
 
 echo "📋 Configuration:"
 echo "  Project ID: $PROJECT_ID"
