@@ -257,38 +257,44 @@ sequenceDiagram
 
     U->>W: Submit Complex Query
     W->>A: POST /chat/stream?agentic=true
-    A->>G: Initialize AgentState
+    A->>G: agentic_rag_instance.run()
     
-    G->>P: Planner Node
+    Note over G: Initialize AgentState with workflow config
+    G->>P: Planner Node Execution
     P->>L: Analyze Query & Create Plan
-    L->>P: Sub-queries + Key Concepts
-    P->>G: Planning Complete
+    L->>P: Plan Content
+    P->>P: Extract Key Concepts & Sub-queries
+    P->>G: Planning Complete (emit trace event)
     
-    G->>R: Retriever Node  
-    R->>R: Execute Hybrid Search
-    R->>G: Retrieved Context
+    G->>R: Retriever Node Execution
+    R->>R: Execute Hybrid Search for Sub-queries
+    R->>R: Deduplicate & Rerank Combined Results
+    R->>G: Retrieved Context (emit sources event)
     
-    G->>S: Synthesizer Node
-    S->>L: Generate Multi-Source Answer
-    L->>S: Comprehensive Response
-    S->>S: Generate Sentence Citations
-    S->>G: Answer + Citations Complete
+    G->>S: Synthesizer Node Execution
+    S->>L: Generate Answer from Context
+    L->>S: Generated Response + Token Usage
+    S->>S: Optional Sentence-level Citations
+    S->>G: Answer Complete (emit completion event)
     
-    G->>V: Verifier Node
-    V->>L: Validate Quality & Coverage
-    L->>V: Verification Result
+    G->>V: Verifier Node Execution
+    V->>L: Validate Quality & Faithfulness
+    L->>V: Verification Assessment
+    V->>G: Verification Complete (emit verification event)
     
-    alt Needs Refinement
-        V->>G: needs_refinement = True
-        G->>R: Refined Retrieval
-        note over G: Loop up to max_refinements
-    else Quality Approved
+    alt Needs Refinement & Under Max Limit
+        V->>G: needs_refinement = True, increment count
+        G->>P: Loop Back to Planner Node
+        Note over G: Refined strategy with updated context
+        Note over P,V: Repeat entire workflow cycle
+    else Quality Approved or Max Refinements Reached
         V->>G: Workflow Complete
     end
     
-    G->>A: Final State with Trace
-    A->>W: Stream Trace Events
-    W->>U: Display with Agent Timeline
+    G->>A: Final AgentState with Complete Trace
+    A->>A: Stream ALL Trace Events Post-Completion
+    A->>W: NDJSON Event Stream (step_start, step_complete, sources, verification, metrics, done)
+    W->>U: Real-time Agent Timeline Display
 ```
 
 ---
