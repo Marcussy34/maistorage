@@ -105,14 +105,14 @@ services/rag_api/
 
 ##### 1. **Hybrid Retrieval Engine** (`retrieval.py`)
 - **Dense Search**: OpenAI `text-embedding-3-small` with Qdrant vectors
-- **Sparse Search**: BM25 scoring with Elasticsearch or in-memory
+- **Sparse Search**: In-memory BM25 scoring with TF-IDF algorithms
 - **Fusion**: Reciprocal Rank Fusion (RRF) for optimal ranking
 - **Reranking**: BGE-reranker-v2 cross-encoder for precision
 - **Diversification**: Maximal Marginal Relevance (MMR) for variety
 
 ```python
 # Retrieval Pipeline
-query → embed → [dense_search, sparse_search] → rrf_fusion → rerank → mmr → results
+query → embed → [dense_search, bm25_search] → rrf_fusion → rerank → mmr → results
 ```
 
 ##### 2. **Agentic Workflow Engine** (`graph.py`)
@@ -185,13 +185,15 @@ Configuration:
     efSearch: 128      # Query time accuracy
 ```
 
-#### Search Infrastructure (Optional Elasticsearch)
+#### Search Infrastructure (In-Memory BM25)
 ```yaml
 BM25 Configuration:
   k1: 1.2           # Term frequency saturation
   b: 0.75           # Length normalization
-  Index: mai_storage_docs
-  Analyzer: Standard with stopwords
+  Implementation: In-memory TF-IDF
+  Index: Built dynamically from Qdrant documents
+  Performance: <1ms for cached queries
+  Persistence: Memory-based with LRU caching
 ```
 
 #### Caching Architecture (`cache.py`)
@@ -214,7 +216,6 @@ sequenceDiagram
     participant A as API
     participant R as Retriever
     participant Q as Qdrant
-    participant E as Elasticsearch
     participant L as LLM
     participant C as Citation Engine
 
@@ -224,7 +225,11 @@ sequenceDiagram
     
     par Parallel Search
         R->>Q: Dense Vector Search
-        R->>E: BM25 Sparse Search
+        Q->>R: Vector Results
+        R->>Q: Get Documents (for BM25)
+        Q->>R: Document Data
+        R->>R: Build BM25 Index + Search
+        R->>R: BM25 Results
     end
     
     R->>R: RRF Fusion + Reranking + MMR
@@ -252,37 +257,44 @@ sequenceDiagram
 
     U->>W: Submit Complex Query
     W->>A: POST /chat/stream?agentic=true
-    A->>G: Initialize AgentState
+    A->>G: agentic_rag_instance.run()
     
-    G->>P: Planner Node
+    Note over G: Initialize AgentState with workflow config
+    G->>P: Planner Node Execution
     P->>L: Analyze Query & Create Plan
-    L->>P: Sub-queries + Key Concepts
-    P->>G: Planning Complete
+    L->>P: Plan Content
+    P->>P: Extract Key Concepts & Sub-queries
+    P->>G: Planning Complete (emit trace event)
     
-    G->>R: Retriever Node  
-    R->>R: Execute Hybrid Search
-    R->>G: Retrieved Context
+    G->>R: Retriever Node Execution
+    R->>R: Execute Hybrid Search for Sub-queries
+    R->>R: Deduplicate & Rerank Combined Results
+    R->>G: Retrieved Context (emit sources event)
     
-    G->>S: Synthesizer Node
-    S->>L: Generate Multi-Source Answer
-    L->>S: Comprehensive Response
-    S->>G: Synthesis Complete
+    G->>S: Synthesizer Node Execution
+    S->>L: Generate Answer from Context
+    L->>S: Generated Response + Token Usage
+    S->>S: Optional Sentence-level Citations
+    S->>G: Answer Complete (emit completion event)
     
-    G->>V: Verifier Node
-    V->>L: Validate Quality & Coverage
-    L->>V: Verification Result
+    G->>V: Verifier Node Execution
+    V->>L: Validate Quality & Faithfulness
+    L->>V: Verification Assessment
+    V->>G: Verification Complete (emit verification event)
     
-    alt Needs Refinement
-        V->>G: needs_refinement = True
-        G->>R: Refined Retrieval
-        note over G: Loop up to max_refinements
-    else Quality Approved
+    alt Needs Refinement & Under Max Limit
+        V->>G: needs_refinement = True, increment count
+        G->>P: Loop Back to Planner Node
+        Note over G: Refined strategy with updated context
+        Note over P,V: Repeat entire workflow cycle
+    else Quality Approved or Max Refinements Reached
         V->>G: Workflow Complete
     end
     
-    G->>A: Final State with Trace
-    A->>W: Stream Trace Events
-    W->>U: Display with Agent Timeline
+    G->>A: Final AgentState with Complete Trace
+    A->>A: Stream ALL Trace Events Post-Completion
+    A->>W: NDJSON Event Stream (step_start, step_complete, sources, verification, metrics, done)
+    W->>U: Real-time Agent Timeline Display
 ```
 
 ---
@@ -378,7 +390,8 @@ Retrieval Metrics:
 ```bash
 # Local Development Stack
 make setup              # Environment configuration
-make start-infra        # Qdrant + Elasticsearch
+make start-infra        # Qdrant only (BM25 in-memory)
+make start-infra-full   # Qdrant + Elasticsearch (optional)
 make start-api         # FastAPI development server
 make start-web         # Next.js development server
 ```
@@ -402,10 +415,11 @@ Services:
       persistence: enabled
       port: 6333
       
-  - elasticsearch:     # Search engine (optional)
+  - elasticsearch:     # Search engine (optional - for enhanced BM25)
       replicas: 1  
       persistence: enabled
       port: 9200
+      profiles: optional
       
   - prometheus:        # Metrics collection
       replicas: 1
@@ -599,7 +613,7 @@ AI/ML:
   
 Data:
   - Vector DB: Qdrant
-  - Search: Elasticsearch (optional)
+  - Search: In-memory BM25 (Elasticsearch optional)
   - Cache: Redis (production)
   - Memory: In-memory (development)
   

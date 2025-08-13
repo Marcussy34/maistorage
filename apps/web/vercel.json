@@ -7,12 +7,12 @@
   "framework": "nextjs",
   "regions": ["iad1"],
   "env": {
-    "RAG_API_URL": "@rag_api_url",
+    "RAG_API_URL": "https://maistorage-backend-mytfom2tca-as.a.run.app",
     "NEXT_PUBLIC_APP_ENV": "production"
   },
   "build": {
     "env": {
-      "RAG_API_URL": "@rag_api_url"
+      "RAG_API_URL": "https://maistorage-backend-mytfom2tca-as.a.run.app"
     }
   },
   "functions": {

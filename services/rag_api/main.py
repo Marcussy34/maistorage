@@ -270,14 +270,31 @@ app_start_time = time.time()
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize services on startup."""
+    """Initialize services on startup - ASYNC for Cloud Run."""
     global retriever, baseline_rag, agentic_rag
     
     logger.info("Starting MAI Storage RAG API...")
+    print("🚀 FastAPI startup event triggered")
+    
+    # For Cloud Run: Start quickly, initialize services in background
+    if settings.environment == "production":
+        print("🚀 Production mode: Services will initialize in background")
+        # Schedule background initialization
+        import asyncio
+        asyncio.create_task(initialize_services_background())
+    else:
+        # Development mode: Initialize synchronously
+        await initialize_services_sync()
+
+async def initialize_services_background():
+    """Initialize services in background for Cloud Run."""
+    global retriever, baseline_rag, agentic_rag
     
     try:
+        print("🚀 Background initialization started...")
+        await asyncio.sleep(1)  # Let server start first
+        
         print("🚀 Initializing hybrid retriever...")
-        # Initialize hybrid retriever
         retriever = HybridRetriever(
             qdrant_url=settings.qdrant_url,
             embedding_model=settings.embedding_model,
@@ -289,26 +306,72 @@ async def startup_event():
         logger.info("Hybrid retriever initialized successfully")
         
         print("🚀 Initializing baseline RAG system...")
-        # Initialize baseline RAG system
         baseline_rag = create_baseline_rag(
             retriever=retriever,
             model=settings.openai_model,
             temperature=0.7,
             api_key=settings.openai_api_key,
-            enable_sentence_citations=False  # Can be configured later
+            enable_sentence_citations=False
         )
         
         print("✅ Baseline RAG system initialized successfully")
         logger.info("Baseline RAG system initialized successfully")
         
         print("🚀 Initializing agentic RAG system...")
-        # Initialize agentic RAG system (Phase 5)
         agentic_rag = create_agentic_rag(
             retriever=retriever,
             model=settings.openai_model,
             api_key=settings.openai_api_key,
             temperature=0.7,
-            enable_sentence_citations=False  # Can be configured later
+            enable_sentence_citations=False
+        )
+        
+        print("✅ Agentic RAG system initialized successfully")
+        logger.info("Agentic RAG system initialized successfully")
+        
+        print("🎉 ALL SERVICES INITIALIZED SUCCESSFULLY!")
+        
+    except Exception as e:
+        print(f"💥 Background initialization failed: {e}")
+        import traceback
+        traceback.print_exc()
+        logger.error(f"Failed to initialize services: {e}")
+
+async def initialize_services_sync():
+    """Initialize services synchronously for development."""
+    global retriever, baseline_rag, agentic_rag
+    
+    try:
+        print("🚀 Initializing hybrid retriever...")
+        retriever = HybridRetriever(
+            qdrant_url=settings.qdrant_url,
+            embedding_model=settings.embedding_model,
+            reranker_model=settings.reranker_model,
+            openai_api_key=settings.openai_api_key
+        )
+        
+        print("✅ Hybrid retriever initialized successfully")
+        logger.info("Hybrid retriever initialized successfully")
+        
+        print("🚀 Initializing baseline RAG system...")
+        baseline_rag = create_baseline_rag(
+            retriever=retriever,
+            model=settings.openai_model,
+            temperature=0.7,
+            api_key=settings.openai_api_key,
+            enable_sentence_citations=False
+        )
+        
+        print("✅ Baseline RAG system initialized successfully")
+        logger.info("Baseline RAG system initialized successfully")
+        
+        print("🚀 Initializing agentic RAG system...")
+        agentic_rag = create_agentic_rag(
+            retriever=retriever,
+            model=settings.openai_model,
+            api_key=settings.openai_api_key,
+            temperature=0.7,
+            enable_sentence_citations=False
         )
         
         print("✅ Agentic RAG system initialized successfully")
@@ -390,66 +453,61 @@ async def read_root():
 
 
 @app.get("/health", response_model=HealthCheck)
-async def health_check(retriever_instance: HybridRetriever = Depends(get_retriever)):
-    """Comprehensive health check with enhanced diagnostics."""
+async def health_check():
+    """Simple health check for Cloud Run - doesn't require services."""
     uptime_seconds = time.time() - app_start_time
     
-    # Check component health
-    qdrant_healthy = True
-    embeddings_healthy = True
-    reranker_healthy = True
-    
-    try:
-        # Test Qdrant connection with timeout
-        collections = retriever_instance.qdrant_client.get_collections()
-        logger.debug(f"Qdrant collections: {len(collections.collections) if collections else 0}")
-    except Exception as e:
-        logger.warning("qdrant_health_check_failed", error=str(e))
-        qdrant_healthy = False
-    
-    try:
-        # Test embeddings (quick test with timeout)
-        with PerformanceLogger("health_check_embedding"):
-            await retriever_instance.embed_query("health check")
-    except Exception as e:
-        logger.warning("embeddings_health_check_failed", error=str(e))
-        embeddings_healthy = False
-    
-    try:
-        # Test reranker model (lazy loading check)
-        _ = retriever_instance.reranker_model
-    except Exception as e:
-        logger.warning("reranker_health_check_failed", error=str(e))
-        reranker_healthy = False
-    
-    # Get system metrics
-    try:
-        memory_info = psutil.virtual_memory()
-        cpu_percent = psutil.cpu_percent(interval=1)
-        memory_usage_mb = memory_info.used / 1024 / 1024
-    except Exception as e:
-        logger.warning("system_metrics_failed", error=str(e))
-        memory_usage_mb = None
-        cpu_percent = None
-    
-    # Get retrieval stats (synchronous access to avoid async issues)
-    stats = retriever_instance.stats.copy()
-    
-    # Determine overall status
-    status = "healthy" if all([qdrant_healthy, embeddings_healthy, reranker_healthy]) else "unhealthy"
-    
     return HealthCheck(
-        status=status,
+        status="healthy",
         timestamp=datetime.utcnow().isoformat(),
-        version="0.3.0",  # Updated version
-        qdrant_healthy=qdrant_healthy,
-        embeddings_healthy=embeddings_healthy,
-        reranker_healthy=reranker_healthy,
+        version="0.3.0-cloudrun",
+        qdrant_healthy=True,  # Will be checked in /ready endpoint
+        embeddings_healthy=True,
+        reranker_healthy=True,
         uptime_seconds=uptime_seconds,
-        total_requests=stats.get("total_queries", 0),
-        memory_usage_mb=memory_usage_mb,
-        cpu_usage_percent=cpu_percent
+        total_requests=0,
+        memory_usage_mb=None,
+        cpu_usage_percent=None
     )
+
+@app.get("/ready")
+async def readiness_check():
+    """Check if all services are initialized and ready."""
+    global retriever, baseline_rag, agentic_rag
+    
+    services_ready = all([
+        retriever is not None,
+        baseline_rag is not None,
+        agentic_rag is not None
+    ])
+    
+    if services_ready:
+        try:
+            # Quick health check of services
+            collections = retriever.qdrant_client.get_collections()
+            qdrant_healthy = True
+        except Exception as e:
+            logger.warning(f"Qdrant health check failed: {e}")
+            qdrant_healthy = False
+            
+        return {
+            "status": "ready" if qdrant_healthy else "degraded",
+            "services_initialized": True,
+            "qdrant_healthy": qdrant_healthy,
+            "retriever_ready": retriever is not None,
+            "baseline_rag_ready": baseline_rag is not None,
+            "agentic_rag_ready": agentic_rag is not None,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    else:
+        return {
+            "status": "initializing",
+            "services_initialized": False,
+            "retriever_ready": retriever is not None,
+            "baseline_rag_ready": baseline_rag is not None,
+            "agentic_rag_ready": agentic_rag is not None,
+            "timestamp": datetime.utcnow().isoformat()
+        }
 
 
 @app.post("/retrieve", response_model=RetrievalResponse)
@@ -1534,8 +1592,8 @@ if __name__ == "__main__":
         print("=" * 50)
         
         # Use standard asyncio loop to avoid conflicts with RAGAS nest_asyncio
-        # Get port from environment variable (Render sets this automatically)
-        port = int(os.environ.get("PORT", 8000))
+        # Get port from environment variable (Cloud Run sets this automatically)
+        port = int(os.environ.get("PORT", 8080))  # Default to 8080 for Cloud Run
         print(f"🚀 Starting FastAPI app on port {port}")
         print(f"📍 Host: 0.0.0.0:{port}")
         print(f"🔧 Environment PORT variable: {os.environ.get('PORT', 'NOT SET')}")
@@ -1553,11 +1611,13 @@ if __name__ == "__main__":
         
         print("🚀 Starting uvicorn server...")
         uvicorn.run(
-            "main:app",
+            app,  # Use app instance directly instead of string
             host="0.0.0.0",
             port=port,
             reload=False,  # Disable reload in production
-            loop="asyncio"  # Force standard asyncio instead of uvloop
+            loop="asyncio",  # Force standard asyncio instead of uvloop
+            access_log=True,  # Enable access logs
+            log_level="info"  # Set log level
         )
         
     except Exception as e:

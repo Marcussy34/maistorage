@@ -24,10 +24,11 @@ from datetime import datetime
 # NLP dependencies for sentence processing
 import nltk
 from nltk.tokenize import sent_tokenize
+# Do not download punkt at import time in Cloud Run; fallback handled at runtime
 try:
     nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt', quiet=True)
+except Exception:
+    pass
 
 # Local imports
 from models import (
@@ -158,8 +159,11 @@ class SentenceCitationEngine:
             return filtered_sentences
             
         except Exception as e:
-            logger.error(f"Sentence extraction failed: {e}")
-            return []
+            logger.warning(f"Sentence extraction failed with NLTK: {e}; falling back to regex")
+            # Fallback simple split
+            rough = re.split(r'[.!?]+', text.strip())
+            filtered = [s.strip() for s in rough if len(s.strip()) >= self.config.min_sentence_length]
+            return filtered[: self.config.max_sentences_per_response]
     
     def _prepare_source_materials(self, retrieval_results: List[RetrievalResult]) -> List[Dict[str, Any]]:
         """Prepare source materials for attribution."""
@@ -355,7 +359,10 @@ class SentenceCitationEngine:
         
         # For now, use a simple approach: find the sentence in source text
         # that has the highest word overlap with the target sentence
-        source_sentences = sent_tokenize(source_text)
+        try:
+            source_sentences = sent_tokenize(source_text)
+        except Exception:
+            source_sentences = re.split(r'[.!?]+', source_text)
         
         sentence_words = set(re.findall(r'\b\w+\b', sentence.lower()))
         best_span_start = 0

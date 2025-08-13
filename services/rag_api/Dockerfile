@@ -22,7 +22,7 @@ WORKDIR /app
 # Copy requirements first for better caching
 COPY requirements.txt .
 
-# Install Python dependencies
+# Install Python dependencies (full set for all RAG features)
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
@@ -37,32 +37,21 @@ USER appuser
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:$PORT/health || exit 1
 
-# Expose port
-EXPOSE 8000
+# Set default port for Cloud Run
+ENV PORT 8080
+EXPOSE 8080
 
-# Production stage
+# Production stage for Cloud Run
 FROM base as production
 
 # Set production environment
 ENV ENVIRONMENT=production \
     DEBUG=false \
-    LOG_LEVEL=INFO
+    LOG_LEVEL=INFO \
+    PORT=8080
 
-# Run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
-
-# Development stage
-FROM base as development
-
-# Set development environment
-ENV ENVIRONMENT=development \
-    DEBUG=true \
-    LOG_LEVEL=DEBUG
-
-# Install development dependencies
-RUN pip install pytest pytest-asyncio black ruff isort
-
-# Run the application with reload
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Run the full FastAPI application with all RAG features
+# Force standard asyncio loop to avoid uvloop issues on Cloud Run
+CMD exec uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1 --loop asyncio --log-level info

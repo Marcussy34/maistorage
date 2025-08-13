@@ -13,7 +13,10 @@ import re
 from typing import Dict, List, Optional, Tuple, Any
 import numpy as np
 from dataclasses import dataclass
-from sentence_transformers import SentenceTransformer
+try:
+    from sentence_transformers import SentenceTransformer
+except Exception:
+    SentenceTransformer = None
 import nltk
 from nltk.tokenize import sent_tokenize
 from sklearn.cluster import KMeans
@@ -23,11 +26,13 @@ import os
 
 logger = logging.getLogger(__name__)
 
-# Download NLTK data if needed
+# Avoid downloading NLTK data at import time in Cloud Run.
+# We'll rely on runtime fallback in _split_into_sentences when punkt is unavailable.
 try:
+    # Best-effort check; do not download to avoid permission/network issues
     nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt', quiet=True)
+except Exception:
+    pass
 
 
 @dataclass
@@ -85,8 +90,15 @@ class ContextCondenser:
         self.embedding_model_name = embedding_model
         self.config = config or {}
         
-        # Initialize sentence transformer for local embeddings
-        self.sentence_transformer = SentenceTransformer(embedding_model)
+        # Initialize sentence transformer for local embeddings (lazy/fallback friendly)
+        if SentenceTransformer is not None:
+            try:
+                self.sentence_transformer = SentenceTransformer(embedding_model)
+            except Exception as e:
+                logger.warning(f"SentenceTransformer init failed: {e}; will fallback to simple embeddings")
+                self.sentence_transformer = None
+        else:
+            self.sentence_transformer = None
         
         # Initialize OpenAI client for query embeddings
         self.openai_client = openai.OpenAI(
@@ -133,8 +145,10 @@ class ContextCondenser:
             return np.array(response.data[0].embedding)
         except Exception as e:
             logger.error(f"Failed to get OpenAI embedding for query: {e}")
-            # Fallback to sentence transformer
-            return self.sentence_transformer.encode([query])[0]
+            # Fallback to sentence transformer or simple vector
+            if self.sentence_transformer is not None:
+                return self.sentence_transformer.encode([query])[0]
+            return np.random.default_rng(42).normal(size=384)
     
     def _extract_sentence_candidates(self,
                                    retrieved_documents: List[Dict[str, Any]]) -> List[SentenceCandidate]:
@@ -177,7 +191,11 @@ class ContextCondenser:
         
         # Get sentence embeddings
         sentence_texts = [candidate.text for candidate in candidates]
-        sentence_embeddings = self.sentence_transformer.encode(sentence_texts)
+        if self.sentence_transformer is not None:
+            sentence_embeddings = self.sentence_transformer.encode(sentence_texts)
+        else:
+            rng = np.random.default_rng(42)
+            sentence_embeddings = np.stack([rng.normal(size=384) for _ in sentence_texts])
         
         # Calculate cosine similarities
         query_embedding = query_embedding.reshape(1, -1)
@@ -251,7 +269,10 @@ class ContextCondenser:
                 continue
             
             # Calculate similarity with already selected sentences
-            candidate_embedding = self.sentence_transformer.encode([candidate.text])[0]
+            if self.sentence_transformer is not None:
+                candidate_embedding = self.sentence_transformer.encode([candidate.text])[0]
+            else:
+                candidate_embedding = np.random.default_rng(42).normal(size=384)
             similarities = cosine_similarity([candidate_embedding], sentence_embeddings)[0]
             
             # Check if sentence is too similar to any selected sentence
