@@ -239,3 +239,5 @@ cython_debug/
 
 # Local development
 .local/
+__pycache__/
+*.pyc
