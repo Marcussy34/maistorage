@@ -106,6 +106,7 @@ services/rag_api/
 ##### 1. **Hybrid Retrieval Engine** (`retrieval.py`)
 - **Dense Search**: OpenAI `text-embedding-3-small` with Qdrant vectors
 - **Sparse Search**: In-memory BM25 scoring with TF-IDF algorithms
+- **Sparse Search**: In-memory BM25 scoring with TF-IDF algorithms
 - **Fusion**: Reciprocal Rank Fusion (RRF) for optimal ranking
 - **Reranking**: BGE-reranker-v2 cross-encoder for precision
 - **Diversification**: Maximal Marginal Relevance (MMR) for variety
@@ -186,10 +187,15 @@ Configuration:
 ```
 
 #### Search Infrastructure (In-Memory BM25)
+#### Search Infrastructure (In-Memory BM25)
 ```yaml
 BM25 Configuration:
   k1: 1.2           # Term frequency saturation
   b: 0.75           # Length normalization
+  Implementation: In-memory TF-IDF
+  Index: Built dynamically from Qdrant documents
+  Performance: <1ms for cached queries
+  Persistence: Memory-based with LRU caching
   Implementation: In-memory TF-IDF
   Index: Built dynamically from Qdrant documents
   Performance: <1ms for cached queries
@@ -225,11 +231,7 @@ sequenceDiagram
     
     par Parallel Search
         R->>Q: Dense Vector Search
-        Q->>R: Vector Results
-        R->>Q: Get Documents (for BM25)
-        Q->>R: Document Data
-        R->>R: Build BM25 Index + Search
-        R->>R: BM25 Results
+        R->>R: In-Memory BM25 Search
     end
     
     R->>R: RRF Fusion + Reranking + MMR
@@ -392,6 +394,8 @@ Retrieval Metrics:
 make setup              # Environment configuration
 make start-infra        # Qdrant only (BM25 in-memory)
 make start-infra-full   # Qdrant + Elasticsearch (optional)
+make start-infra        # Qdrant only (BM25 in-memory)
+make start-infra-full   # Qdrant + Elasticsearch (optional)
 make start-api         # FastAPI development server
 make start-web         # Next.js development server
 ```
@@ -416,9 +420,11 @@ Services:
       port: 6333
       
   - elasticsearch:     # Search engine (optional - for enhanced BM25)
+  - elasticsearch:     # Search engine (optional - for enhanced BM25)
       replicas: 1  
       persistence: enabled
       port: 9200
+      profiles: optional
       profiles: optional
       
   - prometheus:        # Metrics collection
@@ -613,6 +619,7 @@ AI/ML:
   
 Data:
   - Vector DB: Qdrant
+  - Search: In-memory BM25 (Elasticsearch optional)
   - Search: In-memory BM25 (Elasticsearch optional)
   - Cache: Redis (production)
   - Memory: In-memory (development)
